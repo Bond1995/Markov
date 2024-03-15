@@ -256,6 +256,9 @@ class Block(nn.Module):
             print(torch.mean(torch.norm(y[0], dim=1) / torch.norm(z[0], dim=1)))
         x = x + self.attn(x)
         x = x + self.mlp(x)
+        if self.iter == 10000:
+            print("z_n norm:")
+            print(torch.mean(torch.norm(x[0], dim=1)))
         self.iter += 1
         return x
     
@@ -346,6 +349,8 @@ class GPTBase(nn.Module):
         tok_emb = self.transformer.wte(idx.unsqueeze(-1).type(torch.float32)) # token embeddings of shape (b, t, n_embd)
         pos_emb = self.transformer.wpe(pos) # position embeddings of shape (1, t, n_embd)
         if self.iter == 10000:
+            print("e norm:")
+            print(torch.linalg.norm(self.transformer.wte.weight))
             print("e_avg:")
             print(torch.mean(torch.abs(self.transformer.wte.weight)))
             print("p_avg:")
@@ -396,6 +401,9 @@ class GPTBase(nn.Module):
             else:
                 logits = F.linear(x, self.transformer.wte.weight.t(), bias=self.b).squeeze(-1) # (b,t)
                 if self.iter == 10000:
+                    y = logits - self.b
+                    print("inner product mean:")
+                    print(torch.mean(y[0]))
                     print("lm_head:")
                     print(self.transformer.wte.weight.t())
                     print("bias:")

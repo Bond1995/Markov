@@ -15,14 +15,14 @@ do
     #for q in 0.0 0.2 0.4 0.5 0.6 0.8 1.0;
     for q in 0.8;
     do
-        for n_embd in 4 8;
+        for n_embd in 4;
         #for initial in uniform;
         do
             for j in 1 2 3 4 5;
             do
                 # Generate a unique ID for wandb. This makes sure that automatic restarts continue with the same job.
                 RUN_ID=`python -c "import wandb; print(wandb.util.generate_id())"`;
-                RUN_FILE="python main.py --wandb --wandb_project $WANDB_PROJECT --p $p --q $q --n_embd $n_embd --iterations 800"
+                RUN_FILE="python main.py --wandb --wandb_project $WANDB_PROJECT --p $p --q $q --n_embd $n_embd --iterations 400"
 
                 runai submit \
                     --name ${WANDB_RUN_GROUP}-${RUN_ID} \

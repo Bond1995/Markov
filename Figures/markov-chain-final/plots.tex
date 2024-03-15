@@ -1,0 +1,33 @@
+% \documentclass[tikz,border=10pt]{article}
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{tikz,pgfplots}
+\pgfplotsset{compat=1.16} 
+\usetikzlibrary{positioning, shapes, arrows.meta}
+\usetikzlibrary{external}
+
+\newcommand{\btheta}{\boldsymbol{\theta}}
+\newcommand{\bpi}{\boldsymbol{\pi}}
+\newcommand{\bast}{\boldsymbol{\ast}}
+\newcommand{\bP}{\boldsymbol{P}}
+\newcommand{\bbP}{\mathbb{P}}
+
+\tikzexternalize
+
+\begin{document}
+	% Markov "Thank you!"
+	% change colours as needed: https://htmlcolorcodes.com/
+	\definecolor{colour-zero}{HTML}{E83F6F}
+	\definecolor{colour-one}{HTML}{3f9fe8}
+	\definecolor{lin}{HTML}{E15CEC}
+	\begin{tikzpicture}[>=Stealth, node distance=2cm]
+		% 0 and 1
+		\node[ellipse,inner sep=2pt, minimum size=0.7cm,draw,fill=lin!60] (zero) {Thank};
+		\node[ellipse,inner sep=2pt, minimum size=0.7cm,draw,right =2.5cm of zero,fill=lin!60] (one) {You!};
+		% arrows
+		\draw [->] (zero) edge [bend left, out=50, in =130]  node[above] {$1$}   (one);
+		\draw [->] (one)  edge [bend left, out=50, in =130]  node[below] {$0$}   (zero);
+		\draw [->] (zero) edge [out=-140, in =140, loop]  node[left]  {$0$} (zero);
+		\draw [->] (one)  edge [in=-40, out=40, loop] node[right] {$1$} (one);
+	\end{tikzpicture}
+\end{document}
