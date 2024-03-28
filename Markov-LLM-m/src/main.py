@@ -123,7 +123,7 @@ def main(args):
     print(f"\nTraining model={args.model} \n{vars(args)}\n")
     print(sum(p.numel() for p in model.parameters() if p.requires_grad))
 
-    stats = train(model, opt, p, order, scheduler, args.iterations, args.acc_steps, args.batch_size, args.sequence_length, generator,
+    stats = train(model, opt, p, order, args.vocab_size, scheduler, args.iterations, args.acc_steps, args.batch_size, args.sequence_length, generator,
                   eval_freq=args.eval_freq, 
                   distributed_backend=distributed_backend,
                   ckpt_path=f"{ckpt_path}/ckpt.pt", extra_args=args)

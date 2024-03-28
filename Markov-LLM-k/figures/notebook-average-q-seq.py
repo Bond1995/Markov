@@ -9,7 +9,7 @@ api = wandb.Api()
 
 # %% Markov LLM final loss (6k iterations)
 res = []
-for run in api.runs("markov-PQ-embd-64"):
+for run in api.runs("markov-PQ-add-beta"):
     try:
         data = run.history()
         c = data["batch1-q"].values[:]
@@ -20,17 +20,17 @@ for run in api.runs("markov-PQ-embd-64"):
 df = pd.DataFrame(res, columns=["p", "q", "avg"])
 piv = df.pivot_table(index="p", columns="q", values="avg")
 fig, ax = plt.subplots(figsize=(10, 10))
-v = ax.matshow(piv, vmin=0, vmax=1)
+v = ax.matshow(piv, vmin=0.2, vmax=0.8)
 ax.set_xticks(range(len(piv.columns)), piv.columns)
 ax.set_yticks(range(len(piv.index)), piv.index)
 ax.xaxis.set_ticks_position("bottom")
-ax.set(xlabel="q", ylabel="p")
-ax.set_title("Markov LLM average estimated q (400 iterations, embedding size 64)")
-fig.colorbar(v, ax=ax, label="Average estimated q")
+ax.set(xlabel=r"$p$", ylabel=r"$q$")
+ax.set_title(r"Predicted probability $f_{\theta}(x^n | x_n = 0)$ (average across 5 runs)")
+#fig.colorbar(v, ax=ax, label=r"Average predicted $q$")
 for i in range(len(piv.index)):
     for j in range(len(piv.columns)):
         ax.text(j, i, f"{piv.iloc[i, j]:.3f}", ha="center", va="center", color="w")
-fig.savefig("markov-avg-q-embd-64.png", dpi=300)
+fig.savefig("markov-avg-p.pdf", dpi=300)
 
 '''# %% PowerSGD varying rank (very high power)
 res = []
