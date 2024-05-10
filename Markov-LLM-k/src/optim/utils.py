@@ -4,10 +4,13 @@ import torch.nn.functional as F
 from contextlib import nullcontext, contextmanager, ExitStack
 
 
-def get_batch(p, q, order, seq_length, batch_size, generator, extra_args, device='cpu'):
+def get_batch(P, order, seq_length, batch_size, generator, extra_args, device='cpu'):
     data = torch.zeros(batch_size, seq_length+1, device=device)
     if extra_args.initial == 'steady':
-        alpha = q / (p+q)
+        if P.size(0) == 2:
+            alpha = P[1,0] / (P[0,1] + P[1,0])
+        else:
+            alpha = 0.5
     elif extra_args.initial == 'uniform':
         alpha = 0.5
     else:
@@ -16,31 +19,29 @@ def get_batch(p, q, order, seq_length, batch_size, generator, extra_args, device
     for k in range(order):
         data[:,k] = torch.bernoulli(alpha*torch.ones((batch_size,), device=device), generator=generator)
     for i in range(order, seq_length):
-        data[:,i] = get_next_symbols(p, q, data[:,i-order])
+        data[:,i] = get_next_symbols(P, order, data[:,i-order:i])
     x = data[:,:seq_length].to(int)
     y = data[:,1:].to(int)
-    #if "cuda" in torch.device(device).type:
-    #    # pin arrays x,y, which allows us to move them to GPU asynchronously (non_blocking=True)
-    #    x = x.pin_memory().to(device, non_blocking=True)
-    #    y = y.pin_memory().to(device, non_blocking=True)
+    
     return x, y
 
-def get_next_symbols(p, q, data):
-    P = torch.Tensor([[1-p, p],[q, 1-q]]).to(data.device)
-    M = P[data.to(int)]
+def get_next_symbols(P, order, data):
+    powers = torch.Tensor([2**i for i in reversed(range(order))]).to(data.device)
+    idx = data @ powers
+    M = P[idx.to(int)]
     s = torch.multinomial(M,1).flatten()
 
     return s
 
 
 @torch.no_grad()
-def eval(model, p, q, order, sequence_length, batch_size, generator, extra_args, device='cpu', max_num_batches=24, ctx=nullcontext()):
+def eval(model, P, order, sequence_length, batch_size, generator, extra_args, device='cpu', max_num_batches=24, ctx=nullcontext()):
     assert model.training == False
 
     loss_list_val, acc_list = [], []
 
     for _ in range(max_num_batches): 
-        x, y = get_batch(p, q, order, sequence_length, batch_size, generator, extra_args, device=device)
+        x, y = get_batch(P, order, sequence_length, batch_size, generator, extra_args, device=device)
         with ctx:
             outputs = model(x, targets=y, get_logits=True)
         val_loss = outputs['loss']
@@ -54,12 +55,12 @@ def eval(model, p, q, order, sequence_length, batch_size, generator, extra_args,
     return val_acc, val_loss, val_perplexity
 
 @torch.no_grad()
-def eval_probs(model, p, q, order, sequence_length, generator, extra_args, device='cpu', ctx=nullcontext()):
+def eval_probs(model, P, order, sequence_length, generator, extra_args, device='cpu', ctx=nullcontext()):
     assert model.training == False
 
     loss_list_val, acc_list = [], []
 
-    x, y = get_batch(p, q, order, sequence_length, 1, generator, extra_args, device=device)
+    x, y = get_batch(P, order, sequence_length, 1, generator, extra_args, device=device)
     with ctx:
         outputs = model (x, targets=y, get_logits=True)
     val_loss = outputs['loss']
@@ -68,12 +69,14 @@ def eval_probs(model, p, q, order, sequence_length, generator, extra_args, devic
 
     probs = F.softmax(outputs['logits'], dim=-1)
 
-    xb = x[0]
+    xb = x[0].float()
     probsb = probs[0, order-1:]
-    idx = xb[:-order+1]
-    vec0 = probsb[idx == 0][:,1] # estimated p
-    vec1 = probsb[idx == 1][:,0] # estimated q
-    prob_vec = [vec0, vec1]
+    powers = torch.Tensor([2**i for i in reversed(range(order))]).to(device)
+    idx = torch.Tensor([xb[i:i+order] @ powers for i in range(sequence_length - order + 1)])
+    prob_vec = []
+    for i in range(2**order):
+        vec = probsb[idx == i][:,1] # estimated p
+        prob_vec.append(vec)
 
     val_acc = torch.stack(acc_list).mean().item()
     val_loss = torch.stack(loss_list_val).mean().item()

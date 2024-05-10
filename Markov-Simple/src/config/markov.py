@@ -10,7 +10,7 @@ def parse_args(base_parser, args, namespace):
     parser.add_argument('--acc_steps', default=1, type=int)
     parser.add_argument('--seed', default=0, type=int)
     parser.add_argument('--device', default='cuda:0', type=str)
-    parser.add_argument('--iterations', default=400, type=int)
+    parser.add_argument('--iterations', default=10000, type=int)
     parser.add_argument('--lr', default=2e-3, type=float) #2e-3
     parser.add_argument('--warmup_percent', default=0.02, type=float)
     parser.add_argument('--weight_decay', default=1e-3, type=float) # changed 1e-3 -> 0
@@ -55,6 +55,7 @@ def parse_args(base_parser, args, namespace):
     # Weight tying
     parser.add_argument('--no_tying', action='store_true')
     # Initialization
-    parser.add_argument('--init', default='base', choices=['base', 'ashok'])
+    parser.add_argument('--init', default='base', choices=['base', 'ashok', 'lowrank'])
+    parser.add_argument('--v_std', default=0, type=float)
     
     return parser.parse_args(args, namespace)

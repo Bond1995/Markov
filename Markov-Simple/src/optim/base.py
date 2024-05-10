@@ -51,10 +51,9 @@ def train_base(model, est, opt, P, scheduler, iterations, acc_steps, batch_size,
 
                 model.eval()
                 train_loss = loss.detach().cpu().item()
-                eig = outputs['eig'].detach().cpu().item()
                 current_lr = scheduler.get_last_lr()[0] if scheduler is not None else extra_args.lr
                 val_acc, val_loss, val_perplexity, pred_loss, baseline_loss_history, est_loss, baseline_est_loss = eval_baseline(model, est, P, sequence_length, batch_size,
-                                                        iterations, generator, extra_args, extra_args.device, max_num_batches=24, ctx=type_ctx)
+                                                        iterations, generator, extra_args, extra_args.device, max_num_batches=1, ctx=type_ctx)
 
                 print_string = f"{itr} [train] loss={train_loss:.3f} [val] loss={val_loss:.3f}, pp={val_perplexity:.2f}, acc={val_acc:3f}"
                 print_string += f" [time per itr] {dt*1000/eval_freq:.2f}ms"
@@ -74,7 +73,6 @@ def train_base(model, est, opt, P, scheduler, iterations, acc_steps, batch_size,
                         "val/est_loss": est_loss,
                         "val/baseline_est_loss": baseline_est_loss,
                         "lr": current_lr,
-                        "eig": eig,
                     })
                 
                 if itr == iterations:
@@ -86,23 +84,18 @@ def train_base(model, est, opt, P, scheduler, iterations, acc_steps, batch_size,
                         wandb.log({
                             "val/baseline_loss": baseline_loss
                         })
-                    names = ["batch1"]
-                    _, _, _, prob_dict = eval_probs(model, P, sequence_length, names, generator, extra_args,
+                    _, _, _, prob_vec = eval_probs(model, P, sequence_length, generator, extra_args,
                                                          extra_args.device, ctx=type_ctx)
                     if extra_args.wandb:
-                        #for name in names:
-                        name="batch1"
-                        if extra_args.estimate_p:
-                            for i in range(len(prob_dict[name][1])):
-                                wandb.log({
-                                    name+"-p": 1.0 - prob_dict[name][1][i].item()
-                                }, step=i+1)
-                        else:
-                            for i in range(len(prob_dict[name][0])):
-                                wandb.log({
-                                    name+"-q": prob_dict[name][0][i].item(),
-                                    "est-q": est_q.item()
-                                }, step=i+1)
+                        for i in range(len(prob_vec[0])):
+                            wandb.log({
+                                "est/est_0": prob_vec[0][i].detach().cpu().item(),
+                            })
+                        for i in range(len(prob_vec[1])):
+                            wandb.log({
+                                "est/est_1": prob_vec[1][i].detach().cpu().item(),
+                                "est/est-q": est_q.item()
+                            })
                     
                     # if extra_args.eval_seq_prefix != 'none' and (itr % (eval_freq * 5) == 0 or itr == iterations):
                     #     if text_table is None:

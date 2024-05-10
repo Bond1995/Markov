@@ -9,7 +9,7 @@ import copy
 from .utils import eval, eval_probs, get_batch, save_checkpoint
 
 
-def train_base(model, opt, p, q, order, scheduler, iterations, acc_steps, batch_size, sequence_length, generator, eval_freq, ckpt_path, distributed_backend, extra_args):
+def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_size, sequence_length, generator, eval_freq, ckpt_path, distributed_backend, extra_args):
     device_type = 'cuda' if 'cuda' in str(extra_args.device) else 'cpu'
     type_ctx = nullcontext() if device_type == 'cpu' else torch.amp.autocast(
         device_type=device_type, dtype=torch.float16)  # extra_args.dtype) #changed!
@@ -26,7 +26,7 @@ def train_base(model, opt, p, q, order, scheduler, iterations, acc_steps, batch_
     t0 = time.time()
     while itr < iterations:
         for microstep_idx in range(acc_steps):  # gradient accumulation
-            x, y = get_batch(p, q, order, sequence_length, batch_size, generator, extra_args, device=extra_args.device)
+            x, y = get_batch(P, order, sequence_length, batch_size, generator, extra_args, device=extra_args.device)
             with type_ctx:
                 with distributed_backend.get_context_for_microstep_forward(model=model, microstep_idx=microstep_idx, gradient_accumulation_steps=acc_steps):
                     outputs = model(x, targets=y)
@@ -49,8 +49,8 @@ def train_base(model, opt, p, q, order, scheduler, iterations, acc_steps, batch_
                 model.eval()
                 train_loss = loss.detach().cpu().item()
                 current_lr = scheduler.get_last_lr()[0] if scheduler is not None else extra_args.lr
-                val_acc, val_loss, val_perplexity = eval(model, p, q, order, sequence_length, batch_size,
-                                                        generator, extra_args, extra_args.device, max_num_batches=24, ctx=type_ctx)
+                val_acc, val_loss, val_perplexity = eval(model, P, order, sequence_length, batch_size,
+                                                        generator, extra_args, device=extra_args.device, max_num_batches=1, ctx=type_ctx)
 
                 print_string = f"{itr} [train] loss={train_loss:.3f} [val] loss={val_loss:.3f}, pp={val_perplexity:.2f}, acc={val_acc:3f}"
                 print_string += f" [time per itr] {dt*1000/eval_freq:.2f}ms"
@@ -69,17 +69,14 @@ def train_base(model, opt, p, q, order, scheduler, iterations, acc_steps, batch_
                     })
                 
                 if itr == iterations:
-                    _, _, _, prob_vec = eval_probs(model, p, q, order, sequence_length, generator, extra_args,
-                                                         extra_args.device, ctx=type_ctx)
+                    _, _, _, prob_vec = eval_probs(model, P, order, sequence_length, generator, extra_args,
+                                                         device=extra_args.device, ctx=type_ctx)
                     if extra_args.wandb:
-                        for i in range(len(prob_vec[0])):
-                            wandb.log({
-                                "est/est_0": prob_vec[0][i].detach().cpu().item(),
-                            })
-                        for i in range(len(prob_vec[1])):
-                            wandb.log({
-                                "est/est_1": prob_vec[1][i].detach().cpu().item(),
-                            })
+                        for k in range(2**order):
+                            for i in range(len(prob_vec[k])):
+                                wandb.log({
+                                    "est/est_" + str(k): prob_vec[k][i].detach().cpu().item(),
+                                })
                     
                     # if extra_args.eval_seq_prefix != 'none' and (itr % (eval_freq * 5) == 0 or itr == iterations):
                     #     if text_table is None:

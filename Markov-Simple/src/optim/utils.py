@@ -63,7 +63,7 @@ def baseline_est(x):
 
 
 @torch.no_grad()
-def eval(model, P, sequence_length, batch_size, generator, extra_args, device='cpu', max_num_batches=24, ctx=nullcontext()):
+def eval(model, P, sequence_length, batch_size, generator, extra_args, device='cpu', max_num_batches=1, ctx=nullcontext()):
     assert model.training == False
 
     loss_list_val, acc_list = [], []
@@ -83,12 +83,12 @@ def eval(model, P, sequence_length, batch_size, generator, extra_args, device='c
     return val_acc, val_loss, val_perplexity
 
 @torch.no_grad()
-def eval_probs(model, P, sequence_length, names, generator, extra_args, device='cpu', ctx=nullcontext()):
+def eval_probs(model, P, sequence_length, generator, extra_args, device='cpu', ctx=nullcontext()):
     assert model.training == False
 
     loss_list_val, acc_list = [], []
 
-    x, y = get_batch(P, sequence_length, len(names), generator, extra_args, device=device)
+    x, y = get_batch(P, sequence_length, 1, generator, extra_args, device=device)
     with ctx:
         outputs = model(x, targets=y, get_logits=True)
     val_loss = outputs['loss']
@@ -97,19 +97,17 @@ def eval_probs(model, P, sequence_length, names, generator, extra_args, device='
 
     probs = torch.sigmoid(outputs['logits'])
 
-    prob_dict = dict()
-    for i, name in enumerate(names):
-        xb = x[i].to(bool)
-        probsb = probs[i]
-        vec1 = 1 - probsb[xb] # estimated q
-        vec2 = probsb[torch.logical_not(xb)] # estimated p
-        prob_dict[name] = [vec1, vec2]
+    xb = x[0].to(bool)
+    probsb = probs[0]
+    vec0 = probsb[torch.logical_not(xb)] # estimated p
+    vec1 = 1 - probsb[xb] # estimated q
+    prob_vec = [vec0, vec1]
 
     val_acc = torch.stack(acc_list).mean().item()
     val_loss = torch.stack(loss_list_val).mean().item()
     val_perplexity = 2.71828 ** val_loss
 
-    return val_acc, val_loss, val_perplexity, prob_dict
+    return val_acc, val_loss, val_perplexity, prob_vec
 
 @torch.no_grad()
 def eval_baseline(model, est, P, sequence_length, batch_size, iterations, generator, extra_args, device='cpu', max_num_batches=24, ctx=nullcontext()):

@@ -55,7 +55,7 @@ class LayerNorm(nn.Module):
 
 class CausalSelfAttention(nn.Module):
 
-    def __init__(self, config):
+    def __init__(self, id, config):
         super().__init__()
         assert config.n_embd % config.n_head == 0
         # key, query, value projections for all heads, but in a batch
@@ -68,6 +68,8 @@ class CausalSelfAttention(nn.Module):
         self.n_head = config.n_head
         self.n_embd = config.n_embd
         self.dropout = config.dropout
+        self.id = id
+        self.iterations = config.iterations
         # flash attention make GPU go brrrrr but support is only in PyTorch >= 2.0
         self.flash = hasattr(torch.nn.functional, 'scaled_dot_product_attention')
         if not self.flash:
@@ -79,11 +81,21 @@ class CausalSelfAttention(nn.Module):
         self.memory = config.memory
         self.device = config.device
         self.wandb = config.wandb
-        self.iter = 0
+        self.iter = 1
 
     def forward(self, x):
         B, T, C = x.size() # batch size, sequence length, embedding dimensionality (n_embd)
 
+        if self.iter == 2*self.iterations:
+            
+            print("id" + str(self.id) + " W_Q W_K W_V:")
+            print(self.c_attn.weight.cpu().detach().type(torch.float).numpy())
+            fig_qkv = self.c_attn.weight.cpu().detach().type(torch.float)
+            fig_qkv = (fig_qkv - fig_qkv.min()) / (fig_qkv.max()-fig_qkv.min())
+            plt.imshow(fig_qkv.numpy(), cmap='gray', interpolation='nearest')
+            if self.wandb:
+                wandb.log({"id" + str(self.id) + "-att-qkv-"+str(self.iter): plt})
+        
         # calculate query, key, values for all heads in batch and move head forward to be the batch dim
         q, k ,v  = self.c_attn(x).split(self.n_embd, dim=2)
         k = k.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
@@ -101,39 +113,6 @@ class CausalSelfAttention(nn.Module):
                 y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask.to(self.device), dropout_p=self.dropout)
             else:
                 y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=None, dropout_p=self.dropout, is_causal=True)
-            
-            if self.iter == 10000:
-                mat = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
-                attn_bias = torch.zeros(T, T, dtype=q.dtype, device=mat.device)
-                temp_mask = torch.ones(T, T, dtype=torch.bool, device=mat.device).tril(diagonal=0)
-                attn_bias.masked_fill_(temp_mask.logical_not(), float("-inf"))
-                mat += attn_bias
-                mat = F.softmax(mat, dim=-1)
-                fin = mat @ v
-                corr = fin[0,0] @ fin[0,0].t()
-                fig = mat[0,0,:100,:100].cpu().detach()
-                fig = (fig - fig.min()) / (fig.max()-fig.min())
-                fig2 = fin[0,0,:100,:100].cpu().detach()
-                fig2 = (fig2 - fig2.min()) / (fig2.max()-fig2.min())
-                fig3 = corr[:100,:100].cpu().detach()
-                fig3 = (fig3 - fig3.min()) / (fig3.max()-fig3.min())
-
-
-                print("att_mat:")
-                print(mat[0,0])
-                print("value:")
-                print(v[0,0])
-                print("att_out:")
-                print(fin[0,0])
-                plt.imshow(fig.numpy(), cmap='gray', interpolation='nearest')
-                if self.wandb:
-                    wandb.log({"att-"+str(self.iter): plt})
-                plt.imshow(fig2.numpy(), cmap='gray', interpolation='nearest')
-                if self.wandb:
-                    wandb.log({"att-out-"+str(self.iter): plt})
-                plt.imshow(fig3.numpy(), cmap='gray', interpolation='nearest')
-                if self.wandb:
-                    wandb.log({"att-corr-"+str(self.iter): plt})
         else:
             # manual implementation of attention
             att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
@@ -145,10 +124,10 @@ class CausalSelfAttention(nn.Module):
 
         # output projection
         y = self.resid_dropout(self.c_proj(y))
-        if self.iter == 10000:
-            print("att_proj:")
+        if self.iter == 2*self.iterations:
+            print("id" + str(self.id) + "_att_proj:")
             print(self.c_proj.weight)
-            print(self.c_proj.weight.shape)
+        
         self.iter += 1
 
         return y
@@ -156,42 +135,44 @@ class CausalSelfAttention(nn.Module):
 
 class MLP(nn.Module):
 
-    def __init__(self, config):
+    def __init__(self, id, config):
         super().__init__()
         self.c_fc    = nn.Linear(config.n_embd, 4 * config.n_embd, bias=config.bias)
         self.c_proj  = nn.Linear(4 * config.n_embd, config.n_embd, bias=config.bias)
         self.dropout = nn.Dropout(config.dropout)
         self.activation = nn.GELU()
-        self.iter = 0
+        self.id = id
+        self.iterations = config.iterations
+        self.iter = 1
 
     def forward(self, x):
         x = self.c_fc(x)
         x = self.activation(x)
         x = self.c_proj(x)
         x = self.dropout(x)
-        if self.iter == 10000:
-            print("c_fc:")
+        if self.iter == 2*self.iterations:
+            print("id" + str(self.id) + "_c_fc:")
             print(self.c_fc.weight)
-            print("c_proj:")
+            print("id" + str(self.id) + "_c_proj:")
             print(self.c_proj.weight)
+        
         self.iter += 1
+
         return x
 
 
 class Block(nn.Module):
 
-    def __init__(self, config):
+    def __init__(self, id, config):
         super().__init__()
         self.ln_1 = LayerNorm(config.n_embd, bias=config.bias)
-        self.attn = CausalSelfAttention(config)
+        self.attn = CausalSelfAttention(id, config)
         self.ln_2 = LayerNorm(config.n_embd, bias=config.bias)
-        self.mlp = MLP(config)
-        self.iter = 0
+        self.mlp = MLP(id, config)
 
     def forward(self, x):
         x = x + self.attn(self.ln_1(x))
         x = x + self.mlp(self.ln_2(x))
-        self.iter += 1
         return x
     
 
@@ -204,13 +185,14 @@ class GPTBase(nn.Module):
         self.config = config
         self.tokenizer = tiktoken.get_encoding("gpt2")
         self.wandb = config.wandb
-        self.iter = 0
+        self.iterations = config.iterations
+        self.iter = 1
         
         self.transformer = nn.ModuleDict(dict(
             wte = nn.Embedding(config.vocab_size, config.n_embd),
             wpe = nn.Embedding(config.sequence_length, config.n_embd),
             drop = nn.Dropout(config.dropout),
-            h = nn.ModuleList([Block(config) for _ in range(config.n_layer)]),
+            h = nn.ModuleList([Block(id, config) for id in range(config.n_layer)]),
             ln_f = LayerNorm(config.n_embd, bias=config.bias),
         ))
 
@@ -219,16 +201,25 @@ class GPTBase(nn.Module):
         # "UserWarning: functional_call was passed multiple values for tied weights.
         # This behavior is deprecated and will be an error in future versions"
         # not 100% sure what this is, so far seems to be harmless. TODO investigate
-        if self.config.vocab_size != 2 or not self.config.bce:
+        if self.config.vocab_size != 2:
             if not self.config.no_tying:
                 self.transformer.wte.weight = self.lm_head.weight # https://paperswithcode.com/method/weight-tying
 
         # init all weights
         self.apply(self._init_weights)
         # apply special scaled init to the residual projections, per GPT-2 paper
-        for pn, p in self.named_parameters():
-            if pn.endswith('c_proj.weight'):
-                torch.nn.init.normal_(p, mean=0.0, std=0.02/math.sqrt(2 * config.n_layer))
+        if self.config.init == "ashok":
+            for pn, p in self.named_parameters():
+                if pn.endswith('mlp.c_fc.weight'):
+                    torch.nn.init.constant_(p, config.init_value)
+                elif pn.endswith('mlp.c_proj.weight'):
+                    torch.nn.init.constant_(p, -config.init_value)
+                elif pn.endswith('c_proj.weight'):
+                    torch.nn.init.normal_(p, mean=0.0, std=0.02/math.sqrt(2 * config.n_layer))
+        else:
+            for pn, p in self.named_parameters():
+                if pn.endswith('c_proj.weight'):
+                    torch.nn.init.normal_(p, mean=0.0, std=0.02/math.sqrt(2 * config.n_layer))
 
         # report number of parameters
         print("number of parameters: %.2fM" % (self.get_num_params()/1e6,))
@@ -256,18 +247,7 @@ class GPTBase(nn.Module):
     def forward(self, idx, targets=None, get_logits=False):
         device = idx.device
         b, t = idx.size()
-        if self.iter == 10000:
-            past = 2*idx[0,:-2] + idx[0,1:-1]
-            future = idx[0,2:]
-            p00 = sum(future[past==0]) / sum(past==0)
-            p01 = sum(future[past==1]) / sum(past==1)
-            p10 = sum(future[past==2]) / sum(past==2)
-            p11 = sum(future[past==3]) / sum(past==3)
-            print("Frequencies:")
-            print(p00)
-            print(p01)
-            print(p10)
-            print(p11)
+        if self.iter == 2*self.iterations:
             print("Input sequence (first 100 samples):")
             print(idx[0,:100])
             plt.imshow(torch.unsqueeze(idx[0,:100],0).cpu().detach().numpy(), cmap='gray', interpolation='nearest')
@@ -279,15 +259,11 @@ class GPTBase(nn.Module):
         # forward the GPT model itself
         tok_emb = self.transformer.wte(idx) # token embeddings of shape (b, t, n_embd)
         pos_emb = self.transformer.wpe(pos) # position embeddings of shape (1, t, n_embd)
-        if self.iter == 10000:
+        if self.iter == 2*self.iterations:
             print("wte:")
             print(self.transformer.wte.weight)
             print("wpe:")
             print(self.transformer.wpe.weight)
-            pos_plot = pos_emb[0,:,0].cpu().detach().numpy()
-            plt.plot(pos_plot)
-            if self.wandb:
-                wandb.log({"pos-emb-"+str(self.iter): plt})
 
         x = self.transformer.drop(tok_emb + pos_emb)
         for block in self.transformer.h:
@@ -297,19 +273,16 @@ class GPTBase(nn.Module):
         if targets is not None:
             # if we are given some desired targets also calculate the loss
             logits = self.lm_head(x) # (b, t, vocab_size)
-            if self.iter == 10000:
+            if self.iter == 2*self.iterations:
                 print("lm_head:")
                 print(self.lm_head.weight)
-            if self.config.vocab_size == 2 and self.config.bce:
-                logits_single = logits[:,:,1] - logits[:,:,0]
-                loss = F.binary_cross_entropy_with_logits(logits_single.view(-1), targets.float().view(-1))
-            else:
-                loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
+            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
         else:
             # inference-time mini-optimization: only forward the lm_head on the very last position
             logits = self.lm_head(x[:, [-1], :]) # note: using list [-1] to preserve the time dim
             loss = None
         logits = logits if get_logits else None
+
         self.iter += 1
 
         return {'logits': logits, 'loss': loss}
@@ -364,7 +337,7 @@ class GPTBase(nn.Module):
         # will only return the first occurence, key'd by 'transformer.wte.weight', below.
         # so let's manually remove 'lm_head.weight' from decay set. This will include
         # this tensor into optimization via transformer.wte.weight only, and not decayed.
-        if self.config.vocab_size != 2 or not self.config.bce:
+        if self.config.vocab_size != 2:
             if not self.config.no_tying:
                 decay.remove('lm_head.weight')
 
