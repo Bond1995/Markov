@@ -17,29 +17,6 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 from torch.nn import functional as F
 
-class AddBeta():
-    """ Add-beta estimator. """
-
-    def __init__(self, beta, shape, device):
-        self.beta = beta
-        self.counts = torch.zeros(shape, device=device)
-        self.device = device
-
-    def train(self, x):
-        # Zero state counts
-        y = (x[:,:-1] == 0)
-        z = x[:,1:][y]
-        self.counts[0,0] += z.numel() - z.sum()
-        self.counts[0,1] += z.sum()
-
-        # One state counts
-        y = (x[:,:-1] == 1)
-        z = x[:,1:][y]
-        self.counts[1,0] += z.numel() - z.sum()
-        self.counts[1,1] += z.sum()
-
-    def estimate(self):
-        return F.normalize(self.counts + self.beta, p=1.0, dim=1)
 
 class LayerNorm(nn.Module):
     """ LayerNorm but with an optional bias. PyTorch doesn't support simply bias=False """
@@ -59,9 +36,10 @@ class CausalSelfAttention(nn.Module):
         super().__init__()
         assert config.n_embd % config.n_head == 0
         # key, query, value projections for all heads
-        self.c_attn_q = nn.Linear(config.n_embd, config.n_embd, bias=config.bias)
-        self.c_attn_k = nn.Linear(config.n_embd, config.n_embd, bias=config.bias)
-        self.c_attn_v = nn.Linear(config.n_embd, config.n_embd, bias=config.bias)
+        self.c_attn = nn.Linear(config.n_embd, 3 * config.n_embd, bias=config.bias)
+        # key and value embeddings
+        self.embk = nn.Parameter(0.02 * torch.randn(config.sequence_length, config.n_embd))
+        self.embv = nn.Parameter(0.02 * torch.randn(config.sequence_length, config.n_embd))
         # output projection
         self.c_proj = nn.Linear(config.n_embd, config.n_embd, bias=config.bias)
         # regularization
@@ -72,14 +50,8 @@ class CausalSelfAttention(nn.Module):
         self.dropout = config.dropout
         self.id = id
         self.iterations = config.iterations
-        # flash attention make GPU go brrrrr but support is only in PyTorch >= 2.0
-        self.flash = hasattr(torch.nn.functional, 'scaled_dot_product_attention')
-        if not self.flash:
-            print("WARNING: using slow attention. Flash Attention requires PyTorch >= 2.0")
-            # causal mask to ensure that attention is only applied to the left in the input sequence
-            self.register_buffer("bias", torch.tril(torch.ones(config.sequence_length, config.sequence_length))
+        self.register_buffer("bias", torch.tril(torch.ones(config.sequence_length, config.sequence_length))
                                         .view(1, 1, config.sequence_length, config.sequence_length))
-
         self.memory = config.memory
         self.device = config.device
         self.wandb = config.wandb
@@ -99,15 +71,19 @@ class CausalSelfAttention(nn.Module):
                 wandb.log({"id" + str(self.id) + "-att-qkv-"+str(self.iter): plt})
         
         # calculate query, key, values for all heads in batch and move head forward to be the batch dim
-        q = self.c_attn_q(x)
-        k = self.c_attn_k(x)
-        v = self.c_attn_v(x)
+        q, k ,v  = self.c_attn(x).split(self.n_embd, dim=2)
         k = k.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
-        q = q.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
         v = v.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
+        q1 = q.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
+        q2 = q.permute(1, 0, 2).contiguous().view(T, B * self.n_head, C // self.n_head)
+        
+        relative_pos = torch.arange(T)[:, None] - torch.arange(T)[None, :]
+        relative_pos = relative_pos.tril().int().to(self.device)
+        rk = self.embk[relative_pos]
+        rv = self.embv[relative_pos]
 
         # causal self-attention; Self-attend: (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T)
-        if self.flash:
+        '''if self.flash:
             # efficient attention using Flash Attention CUDA kernels
             # Memory attention mask
             if self.memory >= 0:
@@ -116,14 +92,20 @@ class CausalSelfAttention(nn.Module):
                 attn_mask = M1 * (~M2)
                 y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask.to(self.device), dropout_p=self.dropout)
             else:
-                y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=None, dropout_p=self.dropout, is_causal=True)
-        else:
-            # manual implementation of attention
-            att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
-            att = att.masked_fill(self.bias[:,:,:T,:T] == 0, float('-inf'))
-            att = F.softmax(att, dim=-1)
-            att = self.attn_dropout(att)
-            y = att @ v # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
+                y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=None, dropout_p=self.dropout, is_causal=True)'''
+        # manual implementation of attention (no flash attention with relative positional embeddings)
+        att1 = q1 @ k.transpose(-2, -1)
+        att2 = q2 @ rk.transpose(1, 2)
+        att2 = att2.transpose(0, 1).contiguous().view(B, self.n_head, T, T)
+        att = (att1 + att2) * (1.0 / math.sqrt(k.size(-1)))
+        att = att.masked_fill(self.bias[:,:,:T,:T] == 0, float('-inf'))
+        att = F.softmax(att, dim=-1)
+        att = self.attn_dropout(att)
+        y1 = att @ v # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
+        y2 = att.permute(2, 0, 1, 3).contiguous().view(T, B * self.n_head, T)
+        y2 = y2 @ rv
+        y2 = y2.transpose(0, 1).contiguous().view(B, self.n_head, T, C // self.n_head)
+        y = y1 + y2
         y = y.transpose(1, 2).contiguous().view(B, T, C) # re-assemble all head outputs side by side
 
         # output projection
@@ -194,7 +176,6 @@ class GPTBase(nn.Module):
         
         self.transformer = nn.ModuleDict(dict(
             wte = nn.Embedding(config.vocab_size, config.n_embd),
-            wpe = nn.Embedding(config.sequence_length, config.n_embd),
             drop = nn.Dropout(config.dropout),
             h = nn.ModuleList([Block(id, config) for id in range(config.n_layer)]),
         ))
@@ -228,8 +209,6 @@ class GPTBase(nn.Module):
         params are actually used as weights in the final layer, so we include them.
         """
         n_params = sum(p.numel() for p in self.parameters())
-        if non_embedding:
-            n_params -= self.transformer.wpe.weight.numel()
         return n_params
 
     def _init_weights(self, module):
@@ -247,18 +226,16 @@ class GPTBase(nn.Module):
             print("Input sequence (first 100 samples):")
             print(idx[0,:100])
         assert t <= self.config.sequence_length, f"Cannot forward sequence of length {t}, block size is only {self.config.sequence_length}"
-        pos = torch.arange(0, t, dtype=torch.long, device=device).unsqueeze(0) # shape (1, t)
 
         # forward the GPT model itself
         tok_emb = self.transformer.wte(idx) # token embeddings of shape (b, t, n_embd)
-        pos_emb = self.transformer.wpe(pos) # position embeddings of shape (1, t, n_embd)
         if self.iter == 2*self.iterations:
             print("wte:")
             print(self.transformer.wte.weight)
             print("wpe:")
             print(self.transformer.wpe.weight)
 
-        x = self.transformer.drop(tok_emb + pos_emb)
+        x = self.transformer.drop(tok_emb)
         for block in self.transformer.h:
             x = block(x)
 
@@ -268,10 +245,10 @@ class GPTBase(nn.Module):
             if self.iter == 2*self.iterations:
                 print("lm_head:")
                 print(self.lm_head.weight)
-            logits = F.normalize(F.relu(logits) + 1e-5, p=1.0, dim=-1)
-            print(logits)
-            logits = torch.log(logits)
-            loss = F.nll_loss(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
+            #logits = F.normalize(F.relu(logits) + 1e-5, p=1.0, dim=-1)
+            #logits = torch.log(logits)
+            #loss = F.nll_loss(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
+            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
         else:
             # inference-time mini-optimization: only forward the lm_head on the very last position
             logits = self.lm_head(x[:, [-1], :]) # note: using list [-1] to preserve the time dim
@@ -324,6 +301,8 @@ class GPTBase(nn.Module):
                     decay.add(fpn)
                 elif pn.endswith('weight') and isinstance(m, blacklist_weight_modules):
                     # weights of blacklist modules will NOT be weight decayed
+                    no_decay.add(fpn)
+                elif pn.endswith('embk') or pn.endswith('embv'):
                     no_decay.add(fpn)
 
         # validate that we considered every parameter

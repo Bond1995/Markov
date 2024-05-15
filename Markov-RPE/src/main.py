@@ -10,7 +10,6 @@ import random
 import wandb
 
 import config
-from models.base import AddBeta
 from models.utils import get_model
 from optim.base import train_base
 from optim.sparse import train_sparse
