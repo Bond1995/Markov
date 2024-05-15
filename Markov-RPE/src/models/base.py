@@ -58,8 +58,10 @@ class CausalSelfAttention(nn.Module):
     def __init__(self, id, config):
         super().__init__()
         assert config.n_embd % config.n_head == 0
-        # key, query, value projections for all heads, but in a batch
-        self.c_attn = nn.Linear(config.n_embd, 3 * config.n_embd, bias=config.bias)
+        # key, query, value projections for all heads
+        self.c_attn_q = nn.Linear(config.n_embd, config.n_embd, bias=config.bias)
+        self.c_attn_k = nn.Linear(config.n_embd, config.n_embd, bias=config.bias)
+        self.c_attn_v = nn.Linear(config.n_embd, config.n_embd, bias=config.bias)
         # output projection
         self.c_proj = nn.Linear(config.n_embd, config.n_embd, bias=config.bias)
         # regularization
@@ -97,7 +99,9 @@ class CausalSelfAttention(nn.Module):
                 wandb.log({"id" + str(self.id) + "-att-qkv-"+str(self.iter): plt})
         
         # calculate query, key, values for all heads in batch and move head forward to be the batch dim
-        q, k ,v  = self.c_attn(x).split(self.n_embd, dim=2)
+        q = self.c_attn_q(x)
+        k = self.c_attn_k(x)
+        v = self.c_attn_v(x)
         k = k.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
         q = q.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
         v = v.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
@@ -172,7 +176,7 @@ class Block(nn.Module):
 
     def forward(self, x):
         x = x + self.attn(self.ln_1(x))
-        x = x + self.mlp(self.ln_2(x))
+        x = x + self.ln_2(self.mlp(x))
         return x
     
 
@@ -193,17 +197,9 @@ class GPTBase(nn.Module):
             wpe = nn.Embedding(config.sequence_length, config.n_embd),
             drop = nn.Dropout(config.dropout),
             h = nn.ModuleList([Block(id, config) for id in range(config.n_layer)]),
-            ln_f = LayerNorm(config.n_embd, bias=config.bias),
         ))
 
-        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=True) # changed! * 2
-        # with weight tying when using torch.compile() some warnings get generated:
-        # "UserWarning: functional_call was passed multiple values for tied weights.
-        # This behavior is deprecated and will be an error in future versions"
-        # not 100% sure what this is, so far seems to be harmless. TODO investigate
-        if self.config.vocab_size != 2:
-            if not self.config.no_tying:
-                self.transformer.wte.weight = self.lm_head.weight # https://paperswithcode.com/method/weight-tying
+        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=True)
 
         # init all weights
         self.apply(self._init_weights)
@@ -265,7 +261,6 @@ class GPTBase(nn.Module):
         x = self.transformer.drop(tok_emb + pos_emb)
         for block in self.transformer.h:
             x = block(x)
-        x = self.transformer.ln_f(x) # (b, t, n_embd)
 
         if targets is not None:
             # if we are given some desired targets also calculate the loss
@@ -273,7 +268,10 @@ class GPTBase(nn.Module):
             if self.iter == 2*self.iterations:
                 print("lm_head:")
                 print(self.lm_head.weight)
-            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
+            logits = F.normalize(F.relu(logits) + 1e-5, p=1.0, dim=-1)
+            print(logits)
+            logits = torch.log(logits)
+            loss = F.nll_loss(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
         else:
             # inference-time mini-optimization: only forward the lm_head on the very last position
             logits = self.lm_head(x[:, [-1], :]) # note: using list [-1] to preserve the time dim
@@ -327,16 +325,6 @@ class GPTBase(nn.Module):
                 elif pn.endswith('weight') and isinstance(m, blacklist_weight_modules):
                     # weights of blacklist modules will NOT be weight decayed
                     no_decay.add(fpn)
-
-        # subtle: 'transformer.wte.weight' and 'lm_head.weight' are tied, so they
-        # will appear in the no_decay and decay sets respectively after the above.
-        # In addition, because named_parameters() doesn't return duplicates, it
-        # will only return the first occurence, key'd by 'transformer.wte.weight', below.
-        # so let's manually remove 'lm_head.weight' from decay set. This will include
-        # this tensor into optimization via transformer.wte.weight only, and not decayed.
-        if self.config.vocab_size != 2:
-            if not self.config.no_tying:
-                decay.remove('lm_head.weight')
 
         # validate that we considered every parameter
         param_dict = {pn: p for pn, p in self.named_parameters()}
