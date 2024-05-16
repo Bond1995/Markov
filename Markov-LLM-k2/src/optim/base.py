@@ -21,6 +21,9 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
         print(f"Compiling model ...")
         model = torch.compile(model) # requires pytorch 2.0+
 
+    print("Markov transition matrix:")
+    print(P)
+    
     model.train()
 
     t0 = time.time()
