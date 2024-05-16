@@ -50,6 +50,8 @@ def main(args):
         for k in range(2**order):
             pk = torch.rand(1, generator=generator, device=args.device)
             P[k,:] = torch.Tensor([1-pk, pk])
+    print("Markov transition matrix:")
+    print(P)
 
     torch.backends.cuda.matmul.allow_tf32 = True # allows us to make sure we're able to use tensorfloat32 during training
     torch.backends.cudnn.allow_tf32 = True
