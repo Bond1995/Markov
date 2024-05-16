@@ -12,16 +12,14 @@ import inspect
 
 import tiktoken
 import torch
-import wandb
 import torch.nn as nn
-import matplotlib.pyplot as plt
 from torch.nn import functional as F
 
 
 class LayerNorm(nn.Module):
     """ LayerNorm but with an optional bias. PyTorch doesn't support simply bias=False """
 
-    def __init__(self, ndim, bias):
+    def __init__(self, ndim, bias=False):
         super().__init__()
         self.weight = nn.Parameter(torch.ones(ndim))
         self.bias = nn.Parameter(torch.zeros(ndim)) if bias else None
@@ -32,14 +30,19 @@ class LayerNorm(nn.Module):
 
 class CausalSelfAttention(nn.Module):
 
-    def __init__(self, id, config):
+    def __init__(self, config):
         super().__init__()
         assert config.n_embd % config.n_head == 0
-        # key, query, value projections for all heads
+        # sparsity parameters
+        self.l1_lambda = config.lmbda
+        self.alphas_from = config.alphas_from # either 'x' or 'q'
+        self.n_dims_per_head = int(config.n_embd // config.n_head)
+        self.use_sigmoid = config.use_sigmoid
+        self.alphas_mlp = nn.Sequential(nn.Linear(config.n_embd, config.n_alpha_mlp), nn.ReLU(), nn.Linear(config.n_alpha_mlp, config.n_head))
+        if self.l1_lambda > 0.0: 
+            self.alphas_mlp[2].bias.data.fill_(1.0) # init bias to high value so that at first the "gates" are open
+        # key, query, value projections for all heads, but in a batch
         self.c_attn = nn.Linear(config.n_embd, 3 * config.n_embd, bias=config.bias)
-        # key and value embeddings
-        self.embk = nn.Parameter(0.02 * torch.randn(config.sequence_length, config.n_embd))
-        self.embv = nn.Parameter(0.02 * torch.randn(config.sequence_length, config.n_embd))
         # output projection
         self.c_proj = nn.Linear(config.n_embd, config.n_embd, bias=config.bias)
         # regularization
@@ -48,121 +51,107 @@ class CausalSelfAttention(nn.Module):
         self.n_head = config.n_head
         self.n_embd = config.n_embd
         self.dropout = config.dropout
-        self.id = id
-        self.iterations = config.iterations
-        self.register_buffer("bias", torch.tril(torch.ones(config.sequence_length, config.sequence_length))
+        # flash attention make GPU go brrrrr but support is only in PyTorch >= 2.0
+        self.flash = hasattr(torch.nn.functional, 'scaled_dot_product_attention')
+        if not self.flash:
+            print("WARNING: using slow attention. Flash Attention requires PyTorch >= 2.0")
+            # causal mask to ensure that attention is only applied to the left in the input sequence
+            self.register_buffer("bias", torch.tril(torch.ones(config.sequence_length, config.sequence_length))
                                         .view(1, 1, config.sequence_length, config.sequence_length))
-        self.memory = config.memory
-        self.device = config.device
-        self.wandb = config.wandb
-        self.iter = 1
 
-    def forward(self, x):
+    def forward(self, x, alpha_th=None, drop_k=None, get_alphas=False):
         B, T, C = x.size() # batch size, sequence length, embedding dimensionality (n_embd)
 
-        if self.iter == 2*self.iterations:
-            
-            print("id" + str(self.id) + " W_Q W_K W_V:")
-            print(self.c_attn.weight.cpu().detach().type(torch.float).numpy())
-            fig_qkv = self.c_attn.weight.cpu().detach().type(torch.float)
-            fig_qkv = (fig_qkv - fig_qkv.min()) / (fig_qkv.max()-fig_qkv.min())
-            plt.imshow(fig_qkv.numpy(), cmap='gray', interpolation='nearest')
-            if self.wandb:
-                wandb.log({"id" + str(self.id) + "-att-qkv-"+str(self.iter): plt})
-        
         # calculate query, key, values for all heads in batch and move head forward to be the batch dim
         q, k ,v  = self.c_attn(x).split(self.n_embd, dim=2)
+        # compute alphas
+        num_head_pruned, alphas = (0, 0), None
+        if self.l1_lambda > 0 or drop_k is not None:
+            q_ = q if self.alphas_from == 'q' else x
+            if self.use_sigmoid:
+                alphas = torch.sigmoid(self.alphas_mlp(q_))
+            else:
+                alphas = torch.max(torch.min(self.alphas_mlp(q_).abs(), torch.ones(1, device=x.device)), torch.zeros(1, device=x.device)) 
+            l1_penalty = alphas.view(B,-1).abs().sum(dim=-1) # l1 loss computed for each sequence 
+            if alpha_th is not None: # then we set the alphas under alpha_th to 0
+                mask = alphas <= alpha_th
+                num_head_pruned = (mask.sum().float().item(), float(mask.numel()))
+                alphas[mask] = 0.0
+            elif drop_k is not None:
+                if self.l1_lambda == 0 :
+                    alphas = torch.rand_like(alphas)
+                alphas = alphas.view(B,-1)
+                values, _ = torch.sort(alphas) # sorting the alphas for all heads
+                th = values[:, drop_k].view(B,1) # for each sequence in the batch, finding the threshold value s.t. drop_k alphas are lower
+                alphas[alphas < th] = 0.0 # set drop_k alphas to 0 for each sequence
+                if self.l1_lambda == 0 :
+                    alphas[alphas >= th] = 1.0
+                alphas = alphas.view(B, T, self.n_head)
+            alphas = alphas.unsqueeze(-1).expand(B, T, self.n_head, self.n_dims_per_head)
+            alphas = alphas.reshape(*x.shape)
+        else: 
+            l1_penalty = torch.zeros(1, device=x.device)
+        # reshape query, key, values
         k = k.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
+        q = q.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
         v = v.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
-        q1 = q.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
-        q2 = q.permute(1, 0, 2).contiguous().view(T, B * self.n_head, C // self.n_head)
-        
-        relative_pos = torch.arange(T)[:, None] - torch.arange(T)[None, :]
-        relative_pos = relative_pos.tril().int().to(self.device)
-        rk = self.embk[relative_pos]
-        rv = self.embv[relative_pos]
 
         # causal self-attention; Self-attend: (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T)
-        '''if self.flash:
+        if self.flash:
             # efficient attention using Flash Attention CUDA kernels
-            # Memory attention mask
-            if self.memory >= 0:
-                M1 = torch.ones(T, T, dtype=torch.bool).tril(diagonal=0)
-                M2 = torch.ones(T, T, dtype=torch.bool).tril(diagonal=-self.memory-1)
-                attn_mask = M1 * (~M2)
-                y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask.to(self.device), dropout_p=self.dropout)
-            else:
-                y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=None, dropout_p=self.dropout, is_causal=True)'''
-        # manual implementation of attention (no flash attention with relative positional embeddings)
-        att1 = q1 @ k.transpose(-2, -1)
-        att2 = q2 @ rk.transpose(1, 2)
-        att2 = att2.transpose(0, 1).contiguous().view(B, self.n_head, T, T)
-        att = (att1 + att2) * (1.0 / math.sqrt(k.size(-1)))
-        att = att.masked_fill(self.bias[:,:,:T,:T] == 0, float('-inf'))
-        att = F.softmax(att, dim=-1)
-        att = self.attn_dropout(att)
-        y1 = att @ v # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
-        y2 = att.permute(2, 0, 1, 3).contiguous().view(T, B * self.n_head, T)
-        y2 = y2 @ rv
-        y2 = y2.transpose(0, 1).contiguous().view(B, self.n_head, T, C // self.n_head)
-        y = y1 + y2
+            y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=None, dropout_p=self.dropout, is_causal=True)
+        else:
+            # manual implementation of attention
+            att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
+            att = att.masked_fill(self.bias[:,:,:T,:T] == 0, float('-inf'))
+            att = F.softmax(att, dim=-1)
+            att = self.attn_dropout(att)
+            y = att @ v # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
         y = y.transpose(1, 2).contiguous().view(B, T, C) # re-assemble all head outputs side by side
 
         # output projection
-        y = self.resid_dropout(self.c_proj(y))
-        if self.iter == 2*self.iterations:
-            print("id" + str(self.id) + "_att_proj:")
-            print(self.c_proj.weight)
-        
-        self.iter += 1
-
-        return y
+        if self.l1_lambda > 0 or drop_k is not None:
+            y = self.resid_dropout(self.c_proj(alphas * y)) # multiply with the alpha values
+        else: 
+            y = self.resid_dropout(self.c_proj(y))
+        alphas = alphas if get_alphas else None
+        return y, l1_penalty, num_head_pruned, alphas
 
 
 class MLP(nn.Module):
 
-    def __init__(self, id, config):
+    def __init__(self, config):
         super().__init__()
         self.c_fc    = nn.Linear(config.n_embd, 4 * config.n_embd, bias=config.bias)
         self.c_proj  = nn.Linear(4 * config.n_embd, config.n_embd, bias=config.bias)
         self.dropout = nn.Dropout(config.dropout)
         self.activation = nn.GELU()
-        self.id = id
-        self.iterations = config.iterations
-        self.iter = 1
 
     def forward(self, x):
         x = self.c_fc(x)
         x = self.activation(x)
         x = self.c_proj(x)
         x = self.dropout(x)
-        if self.iter == 2*self.iterations:
-            print("id" + str(self.id) + "_c_fc:")
-            print(self.c_fc.weight)
-            print("id" + str(self.id) + "_c_proj:")
-            print(self.c_proj.weight)
-        
-        self.iter += 1
-
         return x
 
 
 class Block(nn.Module):
 
-    def __init__(self, id, config):
+    def __init__(self, config):
         super().__init__()
         self.ln_1 = LayerNorm(config.n_embd, bias=config.bias)
-        self.attn = CausalSelfAttention(id, config)
+        self.attn = CausalSelfAttention(config)
         self.ln_2 = LayerNorm(config.n_embd, bias=config.bias)
-        self.mlp = MLP(id, config)
+        self.mlp = MLP(config)
 
-    def forward(self, x):
-        x = x + self.attn(self.ln_1(x))
-        x = x + self.ln_2(self.mlp(x))
-        return x
+    def forward(self, x, alpha_th=None, drop_k=None, get_alphas=False):
+        att, l1_penalty, num_head_pruned, alphas = self.attn(self.ln_1(x), alpha_th=alpha_th, drop_k=drop_k, get_alphas=get_alphas)
+        x = x + att
+        x = x + self.mlp(self.ln_2(x))
+        return x, l1_penalty, num_head_pruned, alphas
     
 
-class GPTBase(nn.Module):
+class GPTSparseHeadsQ(nn.Module):
 
     def __init__(self, config):
         super().__init__()
@@ -170,33 +159,29 @@ class GPTBase(nn.Module):
         assert config.sequence_length is not None
         self.config = config
         self.tokenizer = tiktoken.get_encoding("gpt2")
-        self.wandb = config.wandb
-        self.iterations = config.iterations
-        self.iter = 1
-        
+        # sparsity parameters
+        self.l1_lambda = config.lmbda
+
         self.transformer = nn.ModuleDict(dict(
             wte = nn.Embedding(config.vocab_size, config.n_embd),
+            wpe = nn.Embedding(config.sequence_length, config.n_embd),
             drop = nn.Dropout(config.dropout),
-            h = nn.ModuleList([Block(id, config) for id in range(config.n_layer)]),
+            h = nn.ModuleList([Block(config) for _ in range(config.n_layer)]),
+            ln_f = LayerNorm(config.n_embd, bias=config.bias),
         ))
-
-        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=True)
+        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
+        # with weight tying when using torch.compile() some warnings get generated:
+        # "UserWarning: functional_call was passed multiple values for tied weights.
+        # This behavior is deprecated and will be an error in future versions"
+        # not 100% sure what this is, so far seems to be harmless. TODO investigate
+        self.transformer.wte.weight = self.lm_head.weight # https://paperswithcode.com/method/weight-tying
 
         # init all weights
         self.apply(self._init_weights)
         # apply special scaled init to the residual projections, per GPT-2 paper
-        if self.config.init == "ashok":
-            for pn, p in self.named_parameters():
-                if pn.endswith('mlp.c_fc.weight'):
-                    torch.nn.init.constant_(p, config.init_value)
-                elif pn.endswith('mlp.c_proj.weight'):
-                    torch.nn.init.constant_(p, -config.init_value)
-                elif pn.endswith('c_proj.weight'):
-                    torch.nn.init.normal_(p, mean=0.0, std=0.02/math.sqrt(2 * config.n_layer))
-        else:
-            for pn, p in self.named_parameters():
-                if pn.endswith('c_proj.weight'):
-                    torch.nn.init.normal_(p, mean=0.0, std=0.02/math.sqrt(2 * config.n_layer))
+        for pn, p in self.named_parameters():
+            if pn.endswith('c_proj.weight'):
+                torch.nn.init.normal_(p, mean=0.0, std=0.02/math.sqrt(2 * config.n_layer))
 
         # report number of parameters
         print("number of parameters: %.2fM" % (self.get_num_params()/1e6,))
@@ -209,6 +194,8 @@ class GPTBase(nn.Module):
         params are actually used as weights in the final layer, so we include them.
         """
         n_params = sum(p.numel() for p in self.parameters())
+        if non_embedding:
+            n_params -= self.transformer.wpe.weight.numel()
         return n_params
 
     def _init_weights(self, module):
@@ -219,43 +206,42 @@ class GPTBase(nn.Module):
         elif isinstance(module, nn.Embedding):
             torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
 
-    def forward(self, idx, targets=None, get_logits=False):
+    def forward(self, idx, targets=None, alpha_th=None, drop_k=None, get_logits=False, get_alphas=False):
         device = idx.device
         b, t = idx.size()
-        if self.iter == 2*self.iterations:
-            print("Input sequence (first 100 samples):")
-            print(idx[0,:100])
         assert t <= self.config.sequence_length, f"Cannot forward sequence of length {t}, block size is only {self.config.sequence_length}"
+        pos = torch.arange(0, t, dtype=torch.long, device=device).unsqueeze(0) # shape (1, t)
 
         # forward the GPT model itself
         tok_emb = self.transformer.wte(idx) # token embeddings of shape (b, t, n_embd)
-        if self.iter == 2*self.iterations:
-            print("wte:")
-            print(self.transformer.wte.weight)
-
-        x = self.transformer.drop(tok_emb)
+        pos_emb = self.transformer.wpe(pos) # position embeddings of shape (1, t, n_embd)
+        x = self.transformer.drop(tok_emb + pos_emb)
+        l1_penalties, alphas_per_layer, num_head_pruned_per_layer, num_heads_per_layer = [], [], [], []
         for block in self.transformer.h:
-            x = block(x)
+            x, l1_penalty, (nhp, nh), alphas = block(x, alpha_th=alpha_th, drop_k=drop_k, get_alphas=get_alphas)
+            l1_penalties.append(l1_penalty)
+            #alphas_per_layer.append(alphas)
+            num_head_pruned_per_layer.append(nhp)
+            num_heads_per_layer.append(nh)
+        x = self.transformer.ln_f(x)
 
         if targets is not None:
             # if we are given some desired targets also calculate the loss
-            logits = self.lm_head(x) # (b, t, vocab_size)
-            if self.iter == 2*self.iterations:
-                print("lm_head:")
-                print(self.lm_head.weight)
-            #logits = F.normalize(F.relu(logits) + 1e-5, p=1.0, dim=-1)
-            #logits = torch.log(logits)
-            #loss = F.nll_loss(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
-            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
+            logits = self.lm_head(x)
+            l1_loss = torch.stack(l1_penalties).sum(dim=0).mean()
+            ce_loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
+            loss = ce_loss + self.l1_lambda * l1_loss
         else:
             # inference-time mini-optimization: only forward the lm_head on the very last position
             logits = self.lm_head(x[:, [-1], :]) # note: using list [-1] to preserve the time dim
-            loss = None
+            loss, ce_loss, l1_loss = None, torch.zeros(1), torch.zeros(1)
+
         logits = logits if get_logits else None
+        alphas_per_layer = alphas_per_layer if get_alphas else None
 
-        self.iter += 1
-
-        return {'logits': logits, 'loss': loss}
+        return {'logits': logits, 'loss': loss, 'ce_loss': ce_loss.cpu().item(), 'l1_loss': l1_loss.cpu().item(), 
+                'alphas': alphas_per_layer, 'num_head_pruned_per_layer': num_head_pruned_per_layer, 
+                'num_heads_per_layer': num_heads_per_layer}
 
     def crop_sequence_length(self, sequence_length):
         # model surgery to decrease the block size if necessary
@@ -300,8 +286,14 @@ class GPTBase(nn.Module):
                 elif pn.endswith('weight') and isinstance(m, blacklist_weight_modules):
                     # weights of blacklist modules will NOT be weight decayed
                     no_decay.add(fpn)
-                elif pn.endswith('embk') or pn.endswith('embv'):
-                    no_decay.add(fpn)
+
+        # subtle: 'transformer.wte.weight' and 'lm_head.weight' are tied, so they
+        # will appear in the no_decay and decay sets respectively after the above.
+        # In addition, because named_parameters() doesn't return duplicates, it
+        # will only return the first occurence, key'd by 'transformer.wte.weight', below.
+        # so let's manually remove 'lm_head.weight' from decay set. This will include
+        # this tensor into optimization via transformer.wte.weight only, and not decayed.
+        decay.remove('lm_head.weight')
 
         # validate that we considered every parameter
         param_dict = {pn: p for pn, p in self.named_parameters()}
@@ -318,7 +310,7 @@ class GPTBase(nn.Module):
         ]
 
     @torch.no_grad()
-    def generate(self, idx, max_new_tokens, temperature=1.0, top_k=None):
+    def generate(self, idx, max_new_tokens, temperature=1.0, top_k=None, alpha_th=None, drop_k=None):
         """
         Take a conditioning sequence of indices idx (LongTensor of shape (b,t)) and complete
         the sequence max_new_tokens times, feeding the predictions back into the model each time.
@@ -328,7 +320,7 @@ class GPTBase(nn.Module):
             # if the sequence context is growing too long we must crop it at sequence_length
             idx_cond = idx if idx.size(1) <= self.config.sequence_length else idx[:, -self.config.sequence_length:]
             # forward the model to get the logits for the index in the sequence
-            logits = self(idx_cond, get_logits=True)['logits']
+            logits = self(idx_cond, alpha_th=alpha_th, drop_k=drop_k, get_logits=True)['logits']
             # pluck the logits at the final step and scale by desired temperature
             logits = logits[:, -1, :] / temperature
             # optionally crop the logits to only the top k options
@@ -345,7 +337,7 @@ class GPTBase(nn.Module):
         return idx
     
     @torch.no_grad()
-    def generate_from_string(self, in_str, max_new_tokens, temperature=1.0, top_k=None):
+    def generate_from_string(self, in_str, max_new_tokens, temperature=1.0, top_k=None, alpha_th=None, drop_k=None):
         idx = torch.tensor(self.tokenizer.encode(in_str, allowed_special={"<|endoftext|>"})).view(1,-1).to(self.lm_head.weight.device)
-        out_idx = self.generate(idx, max_new_tokens, temperature, top_k).view(-1).to('cpu').numpy()
+        out_idx = self.generate(idx, max_new_tokens, temperature, top_k, alpha_th=alpha_th, drop_k=drop_k).view(-1).to('cpu').numpy()
         return self.tokenizer.decode(out_idx)
