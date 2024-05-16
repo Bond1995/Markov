@@ -37,9 +37,6 @@ class CausalSelfAttention(nn.Module):
         assert config.n_embd % config.n_head == 0
         # key, query, value projections for all heads
         self.c_attn = nn.Linear(config.n_embd, 3 * config.n_embd, bias=config.bias)
-        # key and value embeddings
-        self.embk = nn.Parameter(0.02 * torch.randn(config.sequence_length, config.n_embd))
-        self.embv = nn.Parameter(0.02 * torch.randn(config.sequence_length, config.n_embd))
         # output projection
         self.c_proj = nn.Linear(config.n_embd, config.n_embd, bias=config.bias)
         # regularization
