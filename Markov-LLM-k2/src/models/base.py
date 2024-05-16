@@ -13,6 +13,7 @@ import inspect
 import tiktoken
 import torch
 import wandb
+import numpy as np
 import torch.nn as nn
 import matplotlib.pyplot as plt
 from torch.nn import functional as F
@@ -56,12 +57,13 @@ class CausalSelfAttention(nn.Module):
         self.memory = config.memory
         self.device = config.device
         self.wandb = config.wandb
+        self.config = config
         self.iter = 1
 
     def forward(self, x):
         B, T, C = x.size() # batch size, sequence length, embedding dimensionality (n_embd)
 
-        if self.iter == 2*self.iterations:
+        if self.iter == self.iterations + 5*np.floor(self.iterations/self.config.eval_freq):
             
             print("id" + str(self.id) + " W_Q W_K W_V:")
             print(self.c_attn.weight.cpu().detach().type(torch.float).numpy())
@@ -99,7 +101,7 @@ class CausalSelfAttention(nn.Module):
 
         # output projection
         y = self.resid_dropout(self.c_proj(y))
-        if self.iter == 2*self.iterations:
+        if self.iter == self.iterations + 5*np.floor(self.iterations/self.config.eval_freq):
             print("id" + str(self.id) + "_att_proj:")
             print(self.c_proj.weight)
         
@@ -118,6 +120,7 @@ class MLP(nn.Module):
         self.activation = nn.GELU()
         self.id = id
         self.iterations = config.iterations
+        self.config = config
         self.iter = 1
 
     def forward(self, x):
@@ -125,7 +128,7 @@ class MLP(nn.Module):
         x = self.activation(x)
         x = self.c_proj(x)
         x = self.dropout(x)
-        if self.iter == 2*self.iterations:
+        if self.iter == self.iterations + 5*np.floor(self.iterations/self.config.eval_freq):
             print("id" + str(self.id) + "_c_fc:")
             print(self.c_fc.weight)
             print("id" + str(self.id) + "_c_proj:")
@@ -214,7 +217,7 @@ class GPTBase(nn.Module):
     def forward(self, idx, targets=None, get_logits=False):
         device = idx.device
         b, t = idx.size()
-        if self.iter == 2*self.iterations:
+        if self.iter == self.iterations + 5*np.floor(self.iterations/self.config.eval_freq):
             print("Input sequence (first 100 samples):")
             print(idx[0,:100])
         assert t <= self.config.sequence_length, f"Cannot forward sequence of length {t}, block size is only {self.config.sequence_length}"
@@ -223,7 +226,7 @@ class GPTBase(nn.Module):
         # forward the GPT model itself
         tok_emb = self.transformer.wte(idx) # token embeddings of shape (b, t, n_embd)
         pos_emb = self.transformer.wpe(pos) # position embeddings of shape (1, t, n_embd)
-        if self.iter == 2*self.iterations:
+        if self.iter == self.iterations + 5*np.floor(self.iterations/self.config.eval_freq):
             print("wte:")
             print(self.transformer.wte.weight)
             print("wpe:")
@@ -236,7 +239,7 @@ class GPTBase(nn.Module):
         if targets is not None:
             # if we are given some desired targets also calculate the loss
             logits = self.lm_head(x) # (b, t, vocab_size)
-            if self.iter == 2*self.iterations:
+            if self.iter == self.iterations + 5*np.floor(self.iterations/self.config.eval_freq):
                 print("lm_head:")
                 print(self.lm_head.weight)
             loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)

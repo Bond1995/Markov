@@ -48,13 +48,11 @@ def parse_args(base_parser, args, namespace):
     parser.add_argument('--p', default=0.5, type=float)
     parser.add_argument('--q', default=0.5, type=float)
     parser.add_argument('--order', default=1, type=int)
-    parser.add_argument('--chain', default='switch', choices=['switch', 'random'])
+    parser.add_argument('--chain', default='random', choices=['switch', 'random'])
     # Memory args
     parser.add_argument('--memory', default=-1, type=int) # if negative, standard causal attention is applied
     # Starting distribution
-    parser.add_argument('--initial', default='steady', choices=['steady', 'uniform'])
-    # Weight tying
-    parser.add_argument('--no_tying', action='store_true')
+    parser.add_argument('--initial', default='uniform', choices=['steady', 'uniform'])
     # Initialization args
     parser.add_argument('--init', default='base', choices=['base', 'ashok', 'lowrank'])
     parser.add_argument('--init_value', default=1.0, type=float)

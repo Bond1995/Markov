@@ -23,11 +23,11 @@ do
                     do
                         for iterations in 5000;
                         do
-                            for j in 1;
+                            for j in 1 2 3;
                             do
                                 # Generate a unique ID for wandb. This makes sure that automatic restarts continue with the same job.
                                 RUN_ID=`python -c "import wandb; print(wandb.util.generate_id())"`;
-                                RUN_FILE="python main.py --wandb --wandb_project $WANDB_PROJECT --p 0.2 --q 0.3 --initial uniform --chain switch --order 1 --n_embd $n_embd --n_layer $n_layer --n_head $n_head --sequence_length $sequence_length --iterations $iterations"
+                                RUN_FILE="python main.py --wandb --wandb_project $WANDB_PROJECT --chain $chain --order $order --n_embd $n_embd --n_layer $n_layer --n_head $n_head --sequence_length $sequence_length --iterations $iterations"
 
                                 runai submit \
                                     --name ${WANDB_RUN_GROUP}-${RUN_ID} \
