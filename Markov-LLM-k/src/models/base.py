@@ -17,29 +17,6 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 from torch.nn import functional as F
 
-class AddBeta():
-    """ Add-beta estimator. """
-
-    def __init__(self, beta, shape, device):
-        self.beta = beta
-        self.counts = torch.zeros(shape, device=device)
-        self.device = device
-
-    def train(self, x):
-        # Zero state counts
-        y = (x[:,:-1] == 0)
-        z = x[:,1:][y]
-        self.counts[0,0] += z.numel() - z.sum()
-        self.counts[0,1] += z.sum()
-
-        # One state counts
-        y = (x[:,:-1] == 1)
-        z = x[:,1:][y]
-        self.counts[1,0] += z.numel() - z.sum()
-        self.counts[1,1] += z.sum()
-
-    def estimate(self):
-        return F.normalize(self.counts + self.beta, p=1.0, dim=1)
 
 class LayerNorm(nn.Module):
     """ LayerNorm but with an optional bias. PyTorch doesn't support simply bias=False """
@@ -143,6 +120,7 @@ class MLP(nn.Module):
         self.activation = nn.GELU()
         self.id = id
         self.iterations = config.iterations
+        self.config = config
         self.iter = 1
 
     def forward(self, x):

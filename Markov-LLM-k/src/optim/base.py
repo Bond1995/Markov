@@ -21,6 +21,9 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
         print(f"Compiling model ...")
         model = torch.compile(model) # requires pytorch 2.0+
 
+    print("Markov transition matrix:")
+    print(P)
+
     model.train()
 
     t0 = time.time()
@@ -49,7 +52,7 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
                 model.eval()
                 train_loss = loss.detach().cpu().item()
                 current_lr = scheduler.get_last_lr()[0] if scheduler is not None else extra_args.lr
-                val_acc, val_loss, val_perplexity = eval(model, P, order, sequence_length, batch_size,
+                val_acc, val_loss, val_perplexity, opt_loss = eval(model, P, order, sequence_length, batch_size,
                                                         generator, extra_args, device=extra_args.device, max_num_batches=1, ctx=type_ctx)
 
                 print_string = f"{itr} [train] loss={train_loss:.3f} [val] loss={val_loss:.3f}, pp={val_perplexity:.2f}, acc={val_acc:3f}"
@@ -65,6 +68,7 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
                         "val/loss": val_loss,
                         "val/perplexity": val_perplexity,
                         "val/acc": val_acc,
+                        "val/opt_loss": opt_loss,
                         "lr": current_lr,
                     })
                 

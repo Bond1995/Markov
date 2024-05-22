@@ -3,19 +3,19 @@ import torch
 import torch.nn.functional as F
 from contextlib import nullcontext, contextmanager, ExitStack
 
-def get_entropy_rate(P):
-    evals, evecs = np.linalg.eig(P.T)
-    evec1 = evecs[:,np.isclose(evals, 1)]
 
-    #Since np.isclose will return an array, we've indexed with an array
-    #so we still have our 2nd axis.  Get rid of it, since it's only size 1.
-    evec1 = evec1[:,0]
+def optimal_est(P, order, x, y):
+    powers = torch.Tensor([2**i for i in reversed(range(order))]).to(P.device)
+    opt_logits = torch.zeros(x.size(0), x.size(1), P.size(1), device=P.device)
+    if order > 1:
+        opt_logits[:,:order-1,:] = 0.5*torch.ones(x.size(0), order-1, P.size(1), device=P.device)
+    for i in range(order-1, x.size(1)):
+        idx = x[:,i-order+1:i+1].float() @ powers
+        opt_logits[:,i,:] = P[idx.to(int)]
+    opt_logits = torch.log(opt_logits)
+    opt_loss = F.nll_loss(opt_logits.view(-1, opt_logits.size(-1)), y.view(-1), ignore_index=-1)
 
-    stationary = evec1 / evec1.sum()
-
-    #eigs finds complex eigenvalues and eigenvectors, so you'll want the real part.
-    stationary = stationary.real
-    return rate
+    return opt_loss
 
 
 def get_batch(P, order, seq_length, batch_size, generator, extra_args, device='cpu'):
@@ -52,7 +52,7 @@ def get_next_symbols(P, order, data):
 def eval(model, P, order, sequence_length, batch_size, generator, extra_args, device='cpu', max_num_batches=24, ctx=nullcontext()):
     assert model.training == False
 
-    loss_list_val, acc_list = [], []
+    loss_list_val, acc_list, opt_loss_list = [], [], []
 
     for _ in range(max_num_batches): 
         x, y = get_batch(P, order, sequence_length, batch_size, generator, extra_args, device=device)
@@ -61,12 +61,15 @@ def eval(model, P, order, sequence_length, batch_size, generator, extra_args, de
         val_loss = outputs['loss']
         loss_list_val.append(val_loss)
         acc_list.append((outputs['logits'].argmax(-1) == y).float().mean())
+        opt_loss = optimal_est(P, order, x, y)
+        opt_loss_list.append(opt_loss)
 
     val_acc = torch.stack(acc_list).mean().item()
     val_loss = torch.stack(loss_list_val).mean().item()
     val_perplexity = 2.71828 ** val_loss
+    opt_loss = torch.stack(opt_loss_list).mean().item()
 
-    return val_acc, val_loss, val_perplexity
+    return val_acc, val_loss, val_perplexity, opt_loss
 
 @torch.no_grad()
 def eval_probs(model, P, order, sequence_length, generator, extra_args, device='cpu', ctx=nullcontext()):

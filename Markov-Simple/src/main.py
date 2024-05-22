@@ -10,7 +10,6 @@ import random
 import wandb
 
 import config
-from models.base import AddBeta
 from models.utils import get_model
 from optim.base import train_base
 from optim.sparse import train_sparse
@@ -39,14 +38,12 @@ def get_exp_name(args):
 
 def main(args):
     # Markov transition probabilities
-    #I = torch.eye(args.vocab_size)
-    #P = torch.zeros(args.vocab_size, args.vocab_size)
-    #P[:,0] = I[:,-1]
-    #P[:,1:] = I[:,:-1]
     p = args.p
     q = args.q
     P = torch.Tensor([[1-p, p],[q, 1-q]]).to(args.device)
+
     generator = torch.Generator(device=args.device)
+    generator.seed()
 
     torch.backends.cuda.matmul.allow_tf32 = True # allows us to make sure we're able to use tensorfloat32 during training
     torch.backends.cudnn.allow_tf32 = True
@@ -58,14 +55,8 @@ def main(args):
     device_type = "cuda" if "cuda" in str(args.device) else "cpu"
     if device_type == "cuda":
         torch.cuda.set_device(args.device)
-
-    #torch.manual_seed(args.seed)
-    #random.seed(args.seed)
-    #np.random.seed(args.seed)
     
     print(f"Loading dataset '{args.dataset}'")
-    
-    est = AddBeta(beta=0.5, shape=P.shape, device=args.device)
 
     model = get_model(args).to(args.device) # todo: take care of initializing the model if args.use_pretrained != 'none'
 
@@ -126,7 +117,22 @@ def main(args):
     print(f"\nTraining model={args.model} \n{vars(args)}\n")
     print(sum(p.numel() for p in model.parameters() if p.requires_grad))
 
-    stats = train(model, est, opt, P, scheduler, args.iterations, args.acc_steps, args.batch_size, args.sequence_length, generator,
+    # Save initialized params
+    for pn, p in model.named_parameters():
+        if pn.endswith('wpe.weight'):
+            np.save('wpe-0.pt', p.numpy(force=True))
+            if args.wandb:
+                wandb.save('wpe-0.pt.npy')
+        if pn.endswith('attn.c_attn.weight'):
+            np.save('att-qkv-0.pt', p.numpy(force=True))
+            if args.wandb:
+                wandb.save('att-qkv-0.pt.npy')
+        if pn.endswith('mlp.c_fc.weight'):
+            np.save('c_fc-0.pt', p.numpy(force=True))
+            if args.wandb:
+                wandb.save('c_fc-0.pt.npy')
+    
+    stats = train(model, opt, P, scheduler, args.iterations, args.acc_steps, args.batch_size, args.sequence_length, generator,
                   eval_freq=args.eval_freq, 
                   distributed_backend=distributed_backend,
                   ckpt_path=f"{ckpt_path}/ckpt.pt", extra_args=args)

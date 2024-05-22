@@ -6,10 +6,10 @@ import wandb
 import time 
 import copy
 
-from .utils import eval, eval_probs, eval_baseline, eval_pred_baseline, get_batch, save_checkpoint
+from .utils import eval, eval_probs, get_batch, save_checkpoint
 
 
-def train_base(model, est, opt, P, scheduler, iterations, acc_steps, batch_size, sequence_length, generator, eval_freq, ckpt_path, distributed_backend, extra_args):
+def train_base(model, opt, P, scheduler, iterations, acc_steps, batch_size, sequence_length, generator, eval_freq, distributed_backend, ckpt_path, extra_args):
     device_type = 'cuda' if 'cuda' in str(extra_args.device) else 'cpu'
     type_ctx = nullcontext() if device_type == 'cpu' else torch.amp.autocast(
         device_type=device_type, dtype=torch.float16)  # extra_args.dtype) #changed!
@@ -27,7 +27,6 @@ def train_base(model, est, opt, P, scheduler, iterations, acc_steps, batch_size,
     while itr < iterations:
         for microstep_idx in range(acc_steps):  # gradient accumulation
             x, y = get_batch(P, sequence_length, batch_size, generator, extra_args, device=extra_args.device)
-            est.train(x)
             with type_ctx:
                 with distributed_backend.get_context_for_microstep_forward(model=model, microstep_idx=microstep_idx, gradient_accumulation_steps=acc_steps):
                     outputs = model(x, targets=y)
@@ -52,8 +51,8 @@ def train_base(model, est, opt, P, scheduler, iterations, acc_steps, batch_size,
                 model.eval()
                 train_loss = loss.detach().cpu().item()
                 current_lr = scheduler.get_last_lr()[0] if scheduler is not None else extra_args.lr
-                val_acc, val_loss, val_perplexity, pred_loss, baseline_loss_history, est_loss, baseline_est_loss = eval_baseline(model, est, P, sequence_length, batch_size,
-                                                        iterations, generator, extra_args, extra_args.device, max_num_batches=1, ctx=type_ctx)
+                val_acc, val_loss, val_perplexity = eval(model, P, sequence_length, batch_size,
+                                                        generator, extra_args, device=extra_args.device, max_num_batches=1, ctx=type_ctx)
 
                 print_string = f"{itr} [train] loss={train_loss:.3f} [val] loss={val_loss:.3f}, pp={val_perplexity:.2f}, acc={val_acc:3f}"
                 print_string += f" [time per itr] {dt*1000/eval_freq:.2f}ms"
@@ -68,24 +67,12 @@ def train_base(model, est, opt, P, scheduler, iterations, acc_steps, batch_size,
                         "val/loss": val_loss,
                         "val/perplexity": val_perplexity,
                         "val/acc": val_acc,
-                        "val/pred_loss": pred_loss,
-                        "val/baseline_loss_history": baseline_loss_history,
-                        "val/est_loss": est_loss,
-                        "val/baseline_est_loss": baseline_est_loss,
                         "lr": current_lr,
                     })
                 
                 if itr == iterations:
-                    E = est.estimate()
-                    est_q = E[1,0]
-
-                    baseline_loss = eval_pred_baseline(P, sequence_length, batch_size, iterations, generator, extra_args, extra_args.device)
-                    if extra_args.wandb:
-                        wandb.log({
-                            "val/baseline_loss": baseline_loss
-                        })
                     _, _, _, prob_vec = eval_probs(model, P, sequence_length, generator, extra_args,
-                                                         extra_args.device, ctx=type_ctx)
+                                                        device=extra_args.device, ctx=type_ctx)
                     if extra_args.wandb:
                         for i in range(len(prob_vec[0])):
                             wandb.log({
@@ -94,7 +81,6 @@ def train_base(model, est, opt, P, scheduler, iterations, acc_steps, batch_size,
                         for i in range(len(prob_vec[1])):
                             wandb.log({
                                 "est/est_1": prob_vec[1][i].detach().cpu().item(),
-                                "est/est-q": est_q.item()
                             })
                     
                     # if extra_args.eval_seq_prefix != 'none' and (itr % (eval_freq * 5) == 0 or itr == iterations):

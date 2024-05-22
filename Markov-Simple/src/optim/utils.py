@@ -29,38 +29,6 @@ def get_next_symbols(P, data):
 
     return s
 
-def DKL(p, q):
-    d = p * torch.log(p/q) + (1-p) * torch.log((1-p)/(1-q))
-    return max(d, 0.0)
-
-def baseline_est(x):
-    if x[-1] == 1:
-        if x.sum() == x.numel() - torch.argmax(x):
-            l = x.sum()
-            if l > x.numel()/2:
-                p = 1.0 - 1.0 / l
-            else:
-                p = 1.0 - 1.0 / (l * np.log(x.numel()))
-        else:
-            y = (x[:-1] == 1)
-            z = x[1:][y]
-            p = (z.sum()+0.5) / (z.numel()+1)
-    elif x[-1] == 0:
-        if x.sum() == torch.argmin(x):
-            l = x.numel() - x.sum()
-            if l > x.numel()/2:
-                p = 1.0 / l
-            else:
-                p = 1.0 / (l * np.log(x.numel()))
-        else:
-            y = (x[:-1] == 0)
-            z = x[1:][y]
-            p = (z.sum()+0.5) / (z.numel()+1)
-    else:
-        raise ValueError("Error with estimator baseline!")
-    
-    return torch.tensor([1-p, p])
-
 
 @torch.no_grad()
 def eval(model, P, sequence_length, batch_size, generator, extra_args, device='cpu', max_num_batches=1, ctx=nullcontext()):
@@ -109,58 +77,6 @@ def eval_probs(model, P, sequence_length, generator, extra_args, device='cpu', c
 
     return val_acc, val_loss, val_perplexity, prob_vec
 
-@torch.no_grad()
-def eval_baseline(model, est, P, sequence_length, batch_size, iterations, generator, extra_args, device='cpu', max_num_batches=24, ctx=nullcontext()):
-    assert model.training == False
-
-    loss_list_val, acc_list = [], []
-
-    for _ in range(max_num_batches): 
-        x, y = get_batch(P, sequence_length, batch_size, generator, extra_args, device=device)
-        with ctx:
-            outputs = model(x, targets=y, get_logits=True)
-        val_loss = outputs['loss']
-        loss_list_val.append(val_loss)
-        acc_list.append(((outputs['logits'] > 0) == y.to(bool)).float().mean())
-
-    probs = torch.sigmoid(outputs['logits'])
-
-    p_est = probs[x==0].mean()
-    q_est = 1 - probs[x==1].mean()
-    E = est.estimate()
-    p = P[0,1]
-    q = P[1,0]
-    est_loss = np.sqrt(2)*(q*torch.abs(p_est - p) + p*torch.abs(q_est - q)) / (p+q)
-    baseline_est_loss = (q*torch.linalg.norm(E[0] - P[0]) + p*torch.linalg.norm(E[1]-P[1])) / (p+q)
-
-    pred_loss = 0
-    #baseline_loss = 0
-    baseline_loss_history = 0
-
-    #x2, y2 = get_batch(P, sequence_length*iterations, batch_size, device=device)
-
-    for b in range(batch_size):
-        #M[b,x[b,i-1],x[b,i]] += 1
-        x_t = x[b,-1]
-        pred_loss += DKL(P[x_t][1],probs[b,-1]) / batch_size
-        #baseline_loss += DKL(P[x2[b,-1]],baseline_est(x2[b])) / batch_size
-        baseline_loss_history += DKL(P[x_t][1],E[x_t][1]) / batch_size
-
-    val_acc = torch.stack(acc_list).mean().item()
-    val_loss = torch.stack(loss_list_val).mean().item()
-    val_perplexity = 2.71828 ** val_loss
-
-    return val_acc, val_loss, val_perplexity, pred_loss, baseline_loss_history, est_loss, baseline_est_loss
-
-@torch.no_grad()
-def eval_pred_baseline(P, sequence_length, batch_size, iterations, generator, extra_args, device='cpu'):
-    baseline_loss = 0
-    x2, y2 = get_batch(P, sequence_length*iterations, batch_size, generator, extra_args, device=device)
-
-    for b in range(batch_size):
-        baseline_loss += DKL(P[x2[b,-1]][1],baseline_est(x2[b])[1]) / batch_size
-
-    return baseline_loss
 
 @torch.no_grad()
 def eval_sparse(model, P, sequence_length, batch_size, device='cpu', max_num_batches=24, ctx=nullcontext(), alpha_th=None, drop_k=None):

@@ -18,29 +18,6 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 from torch.nn import functional as F
 
-class AddBeta():
-    """ Add-beta estimator. """
-
-    def __init__(self, beta, shape, device):
-        self.beta = beta
-        self.counts = torch.zeros(shape, device=device)
-        self.device = device
-
-    def train(self, x):
-        # Zero state counts
-        y = (x[:,:-1] == 0)
-        z = x[:,1:][y]
-        self.counts[0,0] += z.numel() - z.sum()
-        self.counts[0,1] += z.sum()
-
-        # One state counts
-        y = (x[:,:-1] == 1)
-        z = x[:,1:][y]
-        self.counts[1,0] += z.numel() - z.sum()
-        self.counts[1,1] += z.sum()
-
-    def estimate(self):
-        return F.normalize(self.counts + self.beta, p=1.0, dim=1)
 
 class LayerNorm(nn.Module):
     """ LayerNorm but with an optional bias. PyTorch doesn't support simply bias=False """
@@ -81,13 +58,14 @@ class CausalSelfAttention(nn.Module):
 
         self.memory = config.memory
         self.device = config.device
+        self.config = config
         self.wandb = config.wandb
         self.iter = 1
 
     def forward(self, x):
         B, T, C = x.size() # batch size, sequence length, embedding dimensionality (n_embd)
 
-        if (self.iter == 1) or (self.iter % 2000 == 0):
+        if (self.iter == 1) or (self.iter % 100 == 0):
             print("W_Q W_K W_V:")
             print(self.c_attn.weight.cpu().detach().type(torch.float).numpy())
             fig_qkv = self.c_attn.weight.cpu().detach().type(torch.float)
@@ -95,6 +73,11 @@ class CausalSelfAttention(nn.Module):
             plt.imshow(fig_qkv.numpy(), cmap='gray', interpolation='nearest')
             if self.wandb:
                 wandb.log({"att-qkv-"+str(self.iter): plt})
+
+            np.save('att-qkv-'+str(self.iter)+'.pt', self.c_attn.weight.numpy(force=True))
+            if self.wandb:
+                wandb.save('att-qkv-'+str(self.iter)+'.pt.npy')
+            
 
         # calculate query, key, values for all heads in batch and move head forward to be the batch dim
         q, k ,v  = self.c_attn(x).split(self.n_embd, dim=2)
@@ -124,7 +107,7 @@ class CausalSelfAttention(nn.Module):
             y = att @ v # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
         y = y.transpose(1, 2).contiguous().view(B, T, C) # re-assemble all head outputs side by side
 
-        # output projection (removed)
+        # output projection
         #y = self.resid_dropout(self.c_proj(y))
         '''if self.iter == 2*self.iterations:
             print("att_proj:")
@@ -147,7 +130,8 @@ class MLP(nn.Module):
         self.c_fc    = nn.Linear(config.n_embd, 4 * config.n_embd, bias=config.bias)
         self.c_proj  = nn.Linear(4 * config.n_embd, config.n_embd, bias=config.bias)
         self.dropout = nn.Dropout(config.dropout)
-        self.activation = nn.ReLU() #GELU
+        self.activation = nn.ReLU()
+        self.config = config
         self.wandb = config.wandb
         self.id = id
         self.iterations = config.iterations
@@ -158,7 +142,7 @@ class MLP(nn.Module):
         x = self.activation(x)
         x = self.c_proj(x)
         x = self.dropout(x)
-        if (self.iter == 1) or (self.iter % 2000 == 0):
+        if (self.iter == 1) or (self.iter % 100 == 0):
             print("c_fc:")
             print(self.c_fc.weight)
             print("c_proj:")
@@ -173,6 +157,10 @@ class MLP(nn.Module):
             plt.imshow(fig_c_proj.numpy(), cmap='gray', interpolation='nearest')
             if self.wandb:
                 wandb.log({"c_proj-"+str(self.iter): plt})
+
+            np.save('c_fc-'+str(self.iter)+'.pt', self.c_fc.weight.numpy(force=True))
+            if self.wandb:
+                wandb.save('c_fc-'+str(self.iter)+'.pt.npy')
 
         self.iter += 1
 
@@ -232,6 +220,8 @@ class GPTBase(nn.Module):
         # not 100% sure what this is, so far seems to be harmless. TODO investigate
         #self.transformer.wte.weight.data = self.lm_head.weight.data.view(self.lm_head.weight.shape[1], self.lm_head.weight.shape[0]) # https://paperswithcode.com/method/weight-tying
 
+        self.register_buffer("alpha", 2 * torch.bernoulli(0.5*torch.ones(1,self.config.n_embd)) - 1)
+        self.register_buffer("w", torch.abs(0.1*torch.randn(1)) * (2 * torch.bernoulli(0.5*torch.ones(1,4*self.config.n_embd)) - 1))
         # init all weights
         self.apply(self._init_weights)
         # apply special scaled init to the residual projections, per GPT-2 paper
@@ -242,26 +232,30 @@ class GPTBase(nn.Module):
                 elif pn.endswith('mlp.c_proj.weight'):
                     torch.nn.init.constant_(p, -1)
         elif self.config.init == "lowrank":
-            e = torch.abs(torch.randn(1))
-            w = torch.abs(torch.randn(1))
-            q = torch.abs(torch.randn(1))
-            v = torch.abs(torch.randn(self.config.n_embd, 1)) * self.config.v_std
+            e = torch.abs(0.1*torch.randn(1))
+            w = torch.abs(0.1*torch.randn(1)) * (2 * torch.bernoulli(0.5*torch.ones(1,4*self.config.n_embd)) - 1)
+            v = torch.randn(self.config.n_embd, 1) * self.config.v_std
 
             for pn, p in self.named_parameters():
                 if pn.endswith('wte.weight'):
                     torch.nn.init.constant_(p, e.item())
+                    with torch.no_grad():
+                        p = p * self.alpha
                 if pn.endswith('wpe.weight'):
                     torch.nn.init.constant_(p, -0.5*e.item())
-                if pn.endswith('attn.c_attn.weight'):
-                    torch.nn.init.constant_(p, q.item())
                     with torch.no_grad():
-                        p[2*self.config.n_embd:,:] = v @ torch.ones(1, self.config.n_embd)
+                        p = p * self.alpha
+                if pn.endswith('attn.c_attn.weight'):
+                    with torch.no_grad():
+                        p[2*self.config.n_embd:,:] = v @ self.alpha
                         print("Initialized with std " + str(self.config.v_std))
                         print(p)
                 if pn.endswith('mlp.c_fc.weight'):
-                    torch.nn.init.constant_(p, w.item())
-                elif pn.endswith('mlp.c_proj.weight'):
-                    torch.nn.init.constant_(p, w.item())
+                    with torch.no_grad():
+                        p = self.alpha.T @ self.w
+                if pn.endswith('mlp.c_proj.weight'):
+                    with torch.no_grad():
+                        p = self.w.T @ self.alpha
         else:
             for pn, p in self.named_parameters():
                 if pn.endswith('c_proj.weight'):
@@ -293,18 +287,15 @@ class GPTBase(nn.Module):
     def forward(self, idx, targets=None, get_logits=False):
         device = idx.device
         b, t = idx.size()
-        if (self.iter == 1) or (self.iter % 2000 == 0):
+        if (self.iter == 1) or (self.iter % 100 == 0):
             print(idx[0,:100])
-            plt.imshow(torch.unsqueeze(idx[0,:100],0).cpu().detach().numpy(), cmap='gray', interpolation='nearest')
-            if self.wandb:
-                wandb.log({"idx-"+str(self.iter): plt})
         assert t <= self.config.sequence_length, f"Cannot forward sequence of length {t}, block size is only {self.config.sequence_length}"
         pos = torch.arange(0, t, dtype=torch.long, device=device).unsqueeze(0) # shape (1, t)
         
         # forward the GPT model itself
         tok_emb = self.transformer.wte(idx.unsqueeze(-1).type(torch.float32)) # token embeddings of shape (b, t, n_embd)
         pos_emb = self.transformer.wpe(pos) # position embeddings of shape (1, t, n_embd)
-        if (self.iter == 1) or (self.iter % 2000 == 0):
+        if (self.iter == 1) or (self.iter % 100 == 0):
             print("wte:")
             print(self.transformer.wte.weight)
             print("wpe:")
@@ -319,6 +310,11 @@ class GPTBase(nn.Module):
             plt.imshow(fig_wpe.numpy(), cmap='gray', interpolation='nearest')
             if self.wandb:
                 wandb.log({"wpe-"+str(self.iter): plt})
+            
+            np.save('wpe-'+str(self.iter)+'.pt', self.transformer.wpe.weight.numpy(force=True))
+            if self.wandb:
+                wandb.save('wpe-'+str(self.iter)+'.pt.npy')
+
 
         x = self.transformer.drop(tok_emb + pos_emb)
         for block in self.transformer.h:
@@ -329,7 +325,7 @@ class GPTBase(nn.Module):
             # if we are given some desired targets also calculate the loss
             if self.config.no_tying:
                 logits = self.lm_head(x).squeeze(-1) # (b, t)
-                if (self.iter == 1) or (self.iter % 2000 == 0):
+                if (self.iter == 1) or (self.iter % 100 == 0):
                     print("lm_head:")
                     print(self.lm_head.weight)
                     print("bias:")
@@ -339,15 +335,9 @@ class GPTBase(nn.Module):
                     plt.imshow(fig_lm_head.numpy(), cmap='gray', interpolation='nearest')
                     if self.wandb:
                         wandb.log({"lm_head-"+str(self.iter): plt})
-                    fig_bias = self.lm_head.bias.unsqueeze(0)[:,:].cpu().detach()
-                    fig_bias = (fig_bias - fig_bias.min()) / (fig_bias.max()-fig_bias.min())
-                    plt.imshow(fig_bias.numpy(), cmap='gray', interpolation='nearest')
-                    if self.wandb:
-                        wandb.log({"bias-"+str(self.iter): plt})
             else:
                 logits = F.linear(x, self.transformer.wte.weight.t(), bias=self.b).squeeze(-1) # (b,t)
-                if (self.iter == 1) or (self.iter % 2000 == 0):
-                    y = logits - self.b
+                if (self.iter == 1) or (self.iter % 100 == 0):
                     print("lm_head:")
                     print(self.transformer.wte.weight.t())
                     print("bias:")
@@ -357,27 +347,14 @@ class GPTBase(nn.Module):
                     plt.imshow(fig_lm_head.numpy(), cmap='gray', interpolation='nearest')
                     if self.wandb:
                         wandb.log({"lm_head-"+str(self.iter): plt})
-                    fig_bias = self.b.unsqueeze(0)[:,:].cpu().detach()
-                    fig_bias = (fig_bias - fig_bias.min()) / (fig_bias.max()-fig_bias.min())
-                    plt.imshow(fig_bias.numpy(), cmap='gray', interpolation='nearest')
-                    if self.wandb:
-                        wandb.log({"bias-"+str(self.iter): plt})
             loss = F.binary_cross_entropy_with_logits(logits.view(-1), targets.float().view(-1))
         else:
             # inference-time mini-optimization: only forward the lm_head on the very last position
             logits = self.lm_head(x[:, [-1], :]) # note: using list [-1] to preserve the time dim
             loss = None
         logits = logits if get_logits else None
-
-        '''# Compute Hessian matrix
-        p_avg = torch.mean(self.transformer.wpe.weight, dim=0)
-        hess = torch.eye(self.config.n_embd, device=p_avg.device) * 2 * (self.config.p + self.config.q - 1)
-        for i in range(self.config.sequence_length):
-            v = self.transformer.wpe.weight[i,:] - p_avg
-            hess += v.unsqueeze(1) @ v.unsqueeze(0) / self.config.sequence_length
-        eig = torch.linalg.eigvalsh(hess)[0]'''
-        
         self.iter += 1
+
         return {'logits': logits, 'loss': loss}
 
     def crop_sequence_length(self, sequence_length):
