@@ -1,0 +1,28 @@
+2024-06-27 15:35:53,850 INFO    MainThread:8639 [wandb_setup.py:_flush():76] Current SDK version is 0.17.3
+2024-06-27 15:35:53,851 INFO    MainThread:8639 [wandb_setup.py:_flush():76] Configure stats pid to 8639
+2024-06-27 15:35:53,851 INFO    MainThread:8639 [wandb_setup.py:_flush():76] Loading settings from /Users/bondasch/.config/wandb/settings
+2024-06-27 15:35:53,851 INFO    MainThread:8639 [wandb_setup.py:_flush():76] Loading settings from /Users/bondasch/Downloads/IT/Markov/Markov-Simple/src/wandb/settings
+2024-06-27 15:35:53,851 INFO    MainThread:8639 [wandb_setup.py:_flush():76] Loading settings from environment variables: {}
+2024-06-27 15:35:53,851 INFO    MainThread:8639 [wandb_setup.py:_flush():76] Applying setup settings: {'_disable_service': False}
+2024-06-27 15:35:53,851 INFO    MainThread:8639 [wandb_setup.py:_flush():76] Inferring run settings from compute environment: {'program_relpath': 'Markov-Simple/src/main.py', 'program_abspath': '/Users/bondasch/Downloads/IT/Markov/Markov-Simple/src/main.py', 'program': '/Users/bondasch/Downloads/IT/Markov/Markov-Simple/src/main.py'}
+2024-06-27 15:35:53,851 INFO    MainThread:8639 [wandb_setup.py:_flush():76] Applying login settings: {}
+2024-06-27 15:35:53,851 INFO    MainThread:8639 [wandb_init.py:_log_setup():520] Logging user logs to /Users/bondasch/Downloads/IT/Markov/Markov-Simple/src/wandb/run-20240627_153553-uhgi5ygv/logs/debug.log
+2024-06-27 15:35:53,851 INFO    MainThread:8639 [wandb_init.py:_log_setup():521] Logging internal logs to /Users/bondasch/Downloads/IT/Markov/Markov-Simple/src/wandb/run-20240627_153553-uhgi5ygv/logs/debug-internal.log
+2024-06-27 15:35:53,851 INFO    MainThread:8639 [wandb_init.py:init():560] calling init triggers
+2024-06-27 15:35:53,851 INFO    MainThread:8639 [wandb_init.py:init():567] wandb.init called with sweep_config: {}
+config: {'config_format': 'markov', 'batch_size': 16, 'acc_steps': 1, 'seed': 0, 'iterations': 500, 'lr': 0.002, 'warmup_percent': 0.02, 'weight_decay': 0.001, 'beta1': 0.9, 'beta2': 0.95, 'scheduler': 'cos', 'opt': 'adamw', 'eval_freq': 1, 'results_base_folder': './exps', 'grad_clip': 0.0, 'dataset': 'markov', 'vocab_size': 2, 'data_in_ram': False, 'model': 'base', 'use_pretrained': 'none', 'dropout': 0, 'n_head': 1, 'n_layer': 1, 'n_embd': 4, 'sequence_length': 1024, 'dtype': torch.float16, 'bias': False, 'no_compile': False, 'wandb': True, 'wandb_project': 'test', 'wandb_run_prefix': 'none', 'eval_seq_prefix': '0', 'distributed_backend': None, 'p': 0.2, 'q': 0.3, 'memory': -1, 'initial': 'steady', 'no_tying': False, 'init': 'base', 'v_std': 0, 'world_size': 1}
+2024-06-27 15:35:53,851 INFO    MainThread:8639 [wandb_init.py:init():610] starting backend
+2024-06-27 15:35:53,851 INFO    MainThread:8639 [wandb_init.py:init():614] setting up manager
+2024-06-27 15:35:53,854 INFO    MainThread:8639 [backend.py:_multiprocessing_setup():105] multiprocessing start_methods=spawn,fork,forkserver, using: spawn
+2024-06-27 15:35:53,856 INFO    MainThread:8639 [wandb_init.py:init():622] backend started and connected
+2024-06-27 15:35:53,862 INFO    MainThread:8639 [wandb_init.py:init():711] updated telemetry
+2024-06-27 15:35:53,888 INFO    MainThread:8639 [wandb_init.py:init():744] communicating run to backend with 90.0 second timeout
+2024-06-27 15:35:54,306 INFO    MainThread:8639 [wandb_run.py:_on_init():2402] communicating current version
+2024-06-27 15:35:54,422 INFO    MainThread:8639 [wandb_run.py:_on_init():2411] got version response 
+2024-06-27 15:35:54,422 INFO    MainThread:8639 [wandb_init.py:init():795] starting run threads in backend
+2024-06-27 15:36:00,116 INFO    MainThread:8639 [wandb_run.py:_console_start():2380] atexit reg
+2024-06-27 15:36:00,116 INFO    MainThread:8639 [wandb_run.py:_redirect():2235] redirect: wrap_raw
+2024-06-27 15:36:00,116 INFO    MainThread:8639 [wandb_run.py:_redirect():2300] Wrapping output streams.
+2024-06-27 15:36:00,116 INFO    MainThread:8639 [wandb_run.py:_redirect():2325] Redirects installed.
+2024-06-27 15:36:00,119 INFO    MainThread:8639 [wandb_init.py:init():838] run started, returning control to user process
+2024-06-27 15:36:28,557 WARNING MsgRouterThr:8639 [router.py:message_loop():77] message_loop has been closed

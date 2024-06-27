@@ -3,33 +3,36 @@ set -e  # exit on error
 
 USER=bondasch
 LAB=linx
-WANDB_PROJECT="markov-LLM-order-depth"
+WANDB_PROJECT="markov-LLM-order-depth-new-l2"
 WANDB_RUN_GROUP="test01"
 WANDB_API_KEY=`python -c "import wandb; print(wandb.api.api_key)"`
 CODE_BUNDLE=`epfml bundle pack .`
 
 i=1;
-for p in 0.2;
+for chain in random;
 do
-    for q in 0.3;
+    for order in 4;
     do
-        for chain in random;
+        for n_layer in 2;
         do
-            for order in 1 2 3 4 5;
+            for n_head in 1;
             do
-                for n_layer in 1 2 3 4 5;
+                #for n_embd in 16 32 64;
+                for n_embd in 64;
                 do
-                    for n_head in 1;
+                    #for batch_size in 16 50 100;
+                    for batch_size in 16;
                     do
-                        for n_embd in 16;
+                        #for sequence_length in 8 16 32;
+                        for sequence_length in 32 64 128;
                         do
-                            for iterations in 8000;
+                            for iterations in 25000;
                             do
-                                for j in 1 2 3 4 5;
+                                for j in 1 2 3;
                                 do
                                     # Generate a unique ID for wandb. This makes sure that automatic restarts continue with the same job.
                                     RUN_ID=`python -c "import wandb; print(wandb.util.generate_id())"`;
-                                    RUN_FILE="python main.py --wandb --wandb_project $WANDB_PROJECT --p $p --q $q --chain $chain --order $order --n_embd $n_embd --n_layer $n_layer --n_head $n_head --iterations $iterations"
+                                    RUN_FILE="python main.py --wandb --wandb_project $WANDB_PROJECT --chain $chain --order $order --batch_size $batch_size --n_embd $n_embd --n_layer $n_layer --n_head $n_head --sequence_length $sequence_length --iterations $iterations"
 
                                     runai submit \
                                         --name ${WANDB_RUN_GROUP}-${RUN_ID} \
@@ -48,7 +51,7 @@ do
                                             su $USER -c \
                                             \"epfml bundle exec $CODE_BUNDLE -- $RUN_FILE\";
 
-                                    if [ `expr $i % 10` -eq 0 ]
+                                    if [ `expr $i % 13` -eq 0 ]
                                     then
                                         sleep 5400;
                                     fi
@@ -62,4 +65,3 @@ do
         done
     done
 done
-        

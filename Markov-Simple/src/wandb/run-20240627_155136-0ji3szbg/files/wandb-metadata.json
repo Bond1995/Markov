@@ -1,0 +1,57 @@
+{
+    "os": "macOS-10.16-x86_64-i386-64bit",
+    "python": "3.11.7",
+    "heartbeatAt": "2024-06-27T13:51:37.358133",
+    "startedAt": "2024-06-27T13:51:36.685525",
+    "docker": null,
+    "cuda": null,
+    "args": [
+        "--iterations",
+        "500",
+        "--n_embd",
+        "4",
+        "--p",
+        "0.2",
+        "--q",
+        "0.3",
+        "--device",
+        "cpu",
+        "--wandb"
+    ],
+    "state": "running",
+    "program": "/Users/bondasch/Downloads/IT/Markov/Markov-Simple/src/main.py",
+    "codePathLocal": "main.py",
+    "codePath": "Markov-Simple/src/main.py",
+    "git": {
+        "remote": "https://github.com/Bond1995/Markov.git",
+        "commit": "bcd8dc753cb235855b4af90e325a491dd600ae9a"
+    },
+    "email": "m.bondaschi@gmail.com",
+    "root": "/Users/bondasch/Downloads/IT/Markov",
+    "host": "tsf-452-wpa-0-244.epfl.ch",
+    "username": "bondasch",
+    "executable": "/Users/bondasch/anaconda3/bin/python",
+    "cpu_count": 4,
+    "cpu_count_logical": 8,
+    "cpu_freq": {
+        "current": 2300,
+        "min": 2300,
+        "max": 2300
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2300,
+            "min": 2300,
+            "max": 2300
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 465.62699127197266,
+            "used": 256.8917236328125
+        }
+    },
+    "memory": {
+        "total": 16.0
+    }
+}

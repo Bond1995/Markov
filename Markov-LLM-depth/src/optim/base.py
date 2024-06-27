@@ -52,8 +52,8 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
                 model.eval()
                 train_loss = loss.detach().cpu().item()
                 current_lr = scheduler.get_last_lr()[0] if scheduler is not None else extra_args.lr
-                val_acc, val_loss, val_perplexity, opt_loss = eval(model, P, order, sequence_length, batch_size,
-                                                        generator, extra_args, device=extra_args.device, max_num_batches=1, ctx=type_ctx)
+                val_acc, val_loss, val_perplexity = eval(model, P, order, sequence_length, batch_size,
+                                                        generator, extra_args, device=extra_args.device, max_num_batches=10, ctx=type_ctx)
 
                 print_string = f"{itr} [train] loss={train_loss:.3f} [val] loss={val_loss:.3f}, pp={val_perplexity:.2f}, acc={val_acc:3f}"
                 print_string += f" [time per itr] {dt*1000/eval_freq:.2f}ms"
@@ -68,12 +68,11 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
                         "val/loss": val_loss,
                         "val/perplexity": val_perplexity,
                         "val/acc": val_acc,
-                        "val/opt_loss": opt_loss,
                         "lr": current_lr,
                     })
                 
                 if itr == iterations:
-                    _, _, _, prob_vec = eval_probs(model, P, order, sequence_length, generator, extra_args,
+                    _, _, _, prob_vec, opt_loss = eval_probs(model, P, order, sequence_length, generator, extra_args,
                                                          device=extra_args.device, ctx=type_ctx)
                     if extra_args.wandb:
                         for k in range(2**order):
@@ -81,6 +80,11 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
                                 wandb.log({
                                     "est/est_" + str(k): prob_vec[k][i].detach().cpu().item(),
                                 })
+
+                    if extra_args.wandb:
+                        wandb.log({
+                            "val/opt_loss": opt_loss,
+                        })
                     
                     att_mean, att_std = eval_att(model, P, order, sequence_length, 100,
                                                         generator, extra_args, device=extra_args.device, ctx=type_ctx)

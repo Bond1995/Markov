@@ -1,0 +1,67 @@
+{
+    "os": "macOS-10.16-x86_64-i386-64bit",
+    "python": "3.11.5",
+    "heartbeatAt": "2024-06-17T09:12:36.142546",
+    "startedAt": "2024-06-17T09:12:35.005401",
+    "docker": null,
+    "cuda": null,
+    "args": [
+        "--wandb",
+        "--wandb_project",
+        "tttttest",
+        "--chain",
+        "random",
+        "--order",
+        "2",
+        "--batch_size",
+        "50",
+        "--n_embd",
+        "32",
+        "--n_layer",
+        "2",
+        "--n_head",
+        "1",
+        "--sequence_length",
+        "32",
+        "--iterations",
+        "100",
+        "--device",
+        "cpu"
+    ],
+    "state": "running",
+    "program": "/Users/bondasch/Downloads/IT/Markov/Markov-LLM-AO/src/main.py",
+    "codePathLocal": "main.py",
+    "codePath": "Markov-LLM-AO/src/main.py",
+    "git": {
+        "remote": "https://github.com/Bond1995/Markov.git",
+        "commit": "bcd8dc753cb235855b4af90e325a491dd600ae9a"
+    },
+    "email": "m.bondaschi@gmail.com",
+    "root": "/Users/bondasch/Downloads/IT/Markov",
+    "host": "linx-bondaschi.local",
+    "username": "bondasch",
+    "executable": "/Users/bondasch/anaconda3/bin/python",
+    "cpu_count": 4,
+    "cpu_count_logical": 8,
+    "cpu_freq": {
+        "current": 2300,
+        "min": 2300,
+        "max": 2300
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2300,
+            "min": 2300,
+            "max": 2300
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 465.62699127197266,
+            "used": 267.8138236999512
+        }
+    },
+    "memory": {
+        "total": 16.0
+    }
+}

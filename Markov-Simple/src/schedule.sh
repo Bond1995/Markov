@@ -3,7 +3,7 @@ set -e  # exit on error
 
 USER=bondasch
 LAB=linx
-WANDB_PROJECT="markov-simple-weights-lowrank"
+WANDB_PROJECT="markov-simple-weights-lowrank-new"
 WANDB_RUN_GROUP="test01"
 WANDB_API_KEY=`python -c "import wandb; print(wandb.api.api_key)"`
 CODE_BUNDLE=`epfml bundle pack .`
@@ -15,7 +15,7 @@ do
     do
         for init in lowrank;
         do
-            for j in 1 2 3;
+            for j in 1;
             do
                 # Generate a unique ID for wandb. This makes sure that automatic restarts continue with the same job.
                 RUN_ID=`python -c "import wandb; print(wandb.util.generate_id())"`;

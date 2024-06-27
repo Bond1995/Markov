@@ -4,7 +4,8 @@ import torch.nn.functional as F
 from contextlib import nullcontext, contextmanager, ExitStack
 
 
-def optimal_est(P, order, x, y):
+def optimal_est(P, order, sequence_length, generator, extra_args, device):
+    x, y = get_batch(P, order, sequence_length, 1024, generator, extra_args, device)
     powers = torch.Tensor([2**i for i in reversed(range(order))]).to(P.device)
     opt_logits = torch.zeros(x.size(0), x.size(1), P.size(1), device=P.device)
     if order > 1:
@@ -52,7 +53,7 @@ def get_next_symbols(P, order, data):
 def eval(model, P, order, sequence_length, batch_size, generator, extra_args, device='cpu', max_num_batches=24, ctx=nullcontext()):
     assert model.training == False
 
-    loss_list_val, acc_list, opt_loss_list = [], [], []
+    loss_list_val, acc_list = [], []
 
     for _ in range(max_num_batches): 
         x, y = get_batch(P, order, sequence_length, batch_size, generator, extra_args, device=device)
@@ -61,15 +62,12 @@ def eval(model, P, order, sequence_length, batch_size, generator, extra_args, de
         val_loss = outputs['loss']
         loss_list_val.append(val_loss)
         acc_list.append((outputs['logits'].argmax(-1) == y).float().mean())
-        opt_loss = optimal_est(P, order, x, y)
-        opt_loss_list.append(opt_loss)
 
     val_acc = torch.stack(acc_list).mean().item()
     val_loss = torch.stack(loss_list_val).mean().item()
     val_perplexity = 2.71828 ** val_loss
-    opt_loss = torch.stack(opt_loss_list).mean().item()
 
-    return val_acc, val_loss, val_perplexity, opt_loss
+    return val_acc, val_loss, val_perplexity
 
 
 @torch.no_grad()
@@ -113,7 +111,9 @@ def eval_probs(model, P, order, sequence_length, generator, extra_args, device='
     val_loss = torch.stack(loss_list_val).mean().item()
     val_perplexity = 2.71828 ** val_loss
 
-    return val_acc, val_loss, val_perplexity, prob_vec
+    opt_loss = optimal_est(P, order, sequence_length, generator, extra_args, device)
+
+    return val_acc, val_loss, val_perplexity, prob_vec, opt_loss
 
 @torch.no_grad()
 def eval_sparse(model, P, sequence_length, batch_size, device='cpu', max_num_batches=24, ctx=nullcontext(), alpha_th=None, drop_k=None):

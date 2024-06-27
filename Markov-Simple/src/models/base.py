@@ -38,8 +38,7 @@ class CausalSelfAttention(nn.Module):
         assert config.n_embd % config.n_head == 0
         # key, query, value projections for all heads, but in a batch
         self.c_attn = nn.Linear(config.n_embd, 3 * config.n_embd, bias=config.bias)
-        # output projection (removed)
-        #self.c_proj = nn.Linear(config.n_embd, config.n_embd, bias=config.bias)
+        self.c_proj = nn.Linear(config.n_embd, config.n_embd, bias=config.bias)
         # regularization
         self.attn_dropout = nn.Dropout(config.dropout)
         self.resid_dropout = nn.Dropout(config.dropout)
@@ -67,12 +66,10 @@ class CausalSelfAttention(nn.Module):
 
         if (self.iter == 1) or (self.iter % 100 == 0):
             print("W_Q W_K W_V:")
-            print(self.c_attn.weight.cpu().detach().type(torch.float).numpy())
-            fig_qkv = self.c_attn.weight.cpu().detach().type(torch.float)
-            fig_qkv = (fig_qkv - fig_qkv.min()) / (fig_qkv.max()-fig_qkv.min())
-            plt.imshow(fig_qkv.numpy(), cmap='gray', interpolation='nearest')
+            print(self.c_attn.weight)
+
             if self.wandb:
-                wandb.log({"att-qkv-"+str(self.iter): plt})
+                wandb.log({"att-qkv-"+str(self.iter): wandb.Image(self.c_attn.weight.numpy(force=True))})
 
             np.save('att-qkv-'+str(self.iter)+'.pt', self.c_attn.weight.numpy(force=True))
             if self.wandb:
@@ -108,15 +105,7 @@ class CausalSelfAttention(nn.Module):
         y = y.transpose(1, 2).contiguous().view(B, T, C) # re-assemble all head outputs side by side
 
         # output projection
-        #y = self.resid_dropout(self.c_proj(y))
-        '''if self.iter == 2*self.iterations:
-            print("att_proj:")
-            print(self.c_proj.weight)
-            fig_att_proj = self.c_proj.weight[:,:].cpu().detach()
-            fig_att_proj = (fig_att_proj - fig_att_proj.min()) / (fig_att_proj.max()-fig_att_proj.min())
-            plt.imshow(fig_att_proj.numpy(), cmap='gray', interpolation='nearest')
-            if self.wandb:
-                wandb.log({"att-proj-"+str(self.iter): plt})'''
+        y = self.resid_dropout(self.c_proj(y))
 
         self.iter += 1
 
@@ -147,16 +136,11 @@ class MLP(nn.Module):
             print(self.c_fc.weight)
             print("c_proj:")
             print(self.c_proj.weight)
-            fig_c_fc = self.c_fc.weight[:,:].cpu().detach()
-            fig_c_fc = (fig_c_fc - fig_c_fc.min()) / (fig_c_fc.max()-fig_c_fc.min())
-            plt.imshow(fig_c_fc.numpy(), cmap='gray', interpolation='nearest')
+
             if self.wandb:
-                wandb.log({"c_fc-"+str(self.iter): plt})
-            fig_c_proj = self.c_proj.weight.cpu().detach()
-            fig_c_proj = (fig_c_proj - fig_c_proj.min()) / (fig_c_proj.max()-fig_c_proj.min())
-            plt.imshow(fig_c_proj.numpy(), cmap='gray', interpolation='nearest')
+                wandb.log({"c_fc-"+str(self.iter): wandb.Image(self.c_fc.weight.numpy(force=True))})
             if self.wandb:
-                wandb.log({"c_proj-"+str(self.iter): plt})
+                wandb.log({"c_proj-"+str(self.iter): wandb.Image(self.c_proj.weight.numpy(force=True))})
 
             np.save('c_fc-'+str(self.iter)+'.pt', self.c_fc.weight.numpy(force=True))
             if self.wandb:
@@ -176,9 +160,20 @@ class Block(nn.Module):
         #self.ln_2 = LayerNorm(config.n_embd, bias=config.bias)
         self.mlp = MLP(id, config)
         self.iterations = config.iterations
+        self.wandb = config.wandb
         self.iter = 1
 
     def forward(self, x):
+        if (self.iter == 1) or (self.iter % 100 == 0):
+            y = self.attn(x)
+            z = x + y
+            err = torch.mean(torch.norm(y[0], dim=1) / torch.norm(z[0], dim=1))
+            print("Approximation error:")
+            print(err)
+
+            if self.wandb:
+                wandb.log({"val/approx-err": err.item()})
+
         x = x + self.attn(x)
         x = x + self.mlp(x)
 
@@ -220,42 +215,42 @@ class GPTBase(nn.Module):
         # not 100% sure what this is, so far seems to be harmless. TODO investigate
         #self.transformer.wte.weight.data = self.lm_head.weight.data.view(self.lm_head.weight.shape[1], self.lm_head.weight.shape[0]) # https://paperswithcode.com/method/weight-tying
 
-        self.register_buffer("alpha", 2 * torch.bernoulli(0.5*torch.ones(1,self.config.n_embd)) - 1)
-        self.register_buffer("w", torch.abs(0.1*torch.randn(1)) * (2 * torch.bernoulli(0.5*torch.ones(1,4*self.config.n_embd)) - 1))
+        self.register_buffer("alpha", 2 * torch.bernoulli(0.5*torch.ones(self.config.n_embd,1)) - 1)
+        self.register_buffer("w", torch.abs(0.1*torch.randn(1)) * (2 * torch.bernoulli(0.5*torch.ones(4*self.config.n_embd,1)) - 1))
         # init all weights
         self.apply(self._init_weights)
-        # apply special scaled init to the residual projections, per GPT-2 paper
-        if self.config.init == "ashok":
+        if self.config.init == "good":
             for pn, p in self.named_parameters():
-                if pn.endswith('mlp.c_fc.weight'):
+                if pn.endswith('wte.weight'):
+                    torch.nn.init.constant_(p, 0.5)
+                elif pn.endswith('wpe.weight'):
+                    torch.nn.init.constant_(p, -0.25)
+                elif pn.endswith('mlp.c_fc.weight'):
                     torch.nn.init.constant_(p, 1)
                 elif pn.endswith('mlp.c_proj.weight'):
                     torch.nn.init.constant_(p, -1)
         elif self.config.init == "lowrank":
             e = torch.abs(0.1*torch.randn(1))
-            w = torch.abs(0.1*torch.randn(1)) * (2 * torch.bernoulli(0.5*torch.ones(1,4*self.config.n_embd)) - 1)
             v = torch.randn(self.config.n_embd, 1) * self.config.v_std
+            att_init = 0.02*torch.randn(3*self.config.n_embd,self.config.n_embd)
+            att_init[2*self.config.n_embd:,:].copy_(self.alpha @ v.T)
 
             for pn, p in self.named_parameters():
                 if pn.endswith('wte.weight'):
-                    torch.nn.init.constant_(p, e.item())
                     with torch.no_grad():
-                        p = p * self.alpha
+                        p.copy_(e.item()*self.alpha)
                 if pn.endswith('wpe.weight'):
-                    torch.nn.init.constant_(p, -0.5*e.item())
                     with torch.no_grad():
-                        p = p * self.alpha
+                        p.copy_(torch.ones(p.shape[0],1) @ (-0.5*e.item()*self.alpha.T))
                 if pn.endswith('attn.c_attn.weight'):
                     with torch.no_grad():
-                        p[2*self.config.n_embd:,:] = v @ self.alpha
-                        print("Initialized with std " + str(self.config.v_std))
-                        print(p)
+                        p.copy_(att_init)
                 if pn.endswith('mlp.c_fc.weight'):
                     with torch.no_grad():
-                        p = self.alpha.T @ self.w
+                        p.copy_(self.w @ self.alpha.T)
                 if pn.endswith('mlp.c_proj.weight'):
                     with torch.no_grad():
-                        p = self.w.T @ self.alpha
+                        p.copy_(self.alpha @ self.w.T)
         else:
             for pn, p in self.named_parameters():
                 if pn.endswith('c_proj.weight'):
@@ -300,16 +295,11 @@ class GPTBase(nn.Module):
             print(self.transformer.wte.weight)
             print("wpe:")
             print(self.transformer.wpe.weight)
-            fig_wte = self.transformer.wte.weight[:,:].cpu().detach()
-            fig_wte = (fig_wte - fig_wte.min()) / (fig_wte.max()-fig_wte.min())
-            plt.imshow(fig_wte.numpy(), cmap='gray', interpolation='nearest')
+
             if self.wandb:
-                wandb.log({"wte-"+str(self.iter): plt})
-            fig_wpe = self.transformer.wpe.weight[:100,:].cpu().detach().type(torch.float)
-            fig_wpe = (fig_wpe - fig_wpe.min()) / (fig_wpe.max()-fig_wpe.min())
-            plt.imshow(fig_wpe.numpy(), cmap='gray', interpolation='nearest')
+                wandb.log({"wte-"+str(self.iter): wandb.Image(self.transformer.wte.weight.numpy(force=True))})
             if self.wandb:
-                wandb.log({"wpe-"+str(self.iter): plt})
+                wandb.log({"wpe-"+str(self.iter): wandb.Image(self.transformer.wpe.weight[:100].numpy(force=True))})
             
             np.save('wpe-'+str(self.iter)+'.pt', self.transformer.wpe.weight.numpy(force=True))
             if self.wandb:
@@ -330,11 +320,9 @@ class GPTBase(nn.Module):
                     print(self.lm_head.weight)
                     print("bias:")
                     print(self.lm_head.bias)
-                    fig_lm_head = self.lm_head.weight[:,:].cpu().detach()
-                    fig_lm_head = (fig_lm_head - fig_lm_head.min()) / (fig_lm_head.max()-fig_lm_head.min())
-                    plt.imshow(fig_lm_head.numpy(), cmap='gray', interpolation='nearest')
+
                     if self.wandb:
-                        wandb.log({"lm_head-"+str(self.iter): plt})
+                        wandb.log({"lm_head-"+str(self.iter): wandb.Image(self.lm_head.weight.numpy(force=True))})
             else:
                 logits = F.linear(x, self.transformer.wte.weight.t(), bias=self.b).squeeze(-1) # (b,t)
                 if (self.iter == 1) or (self.iter % 100 == 0):
@@ -342,11 +330,9 @@ class GPTBase(nn.Module):
                     print(self.transformer.wte.weight.t())
                     print("bias:")
                     print(self.b)
-                    fig_lm_head = self.transformer.wte.weight.t()[:,:].cpu().detach()
-                    fig_lm_head = (fig_lm_head - fig_lm_head.min()) / (fig_lm_head.max()-fig_lm_head.min())
-                    plt.imshow(fig_lm_head.numpy(), cmap='gray', interpolation='nearest')
+                    
                     if self.wandb:
-                        wandb.log({"lm_head-"+str(self.iter): plt})
+                        wandb.log({"lm_head-"+str(self.iter): wandb.Image(self.transformer.wte.weight.t().numpy(force=True))})
             loss = F.binary_cross_entropy_with_logits(logits.view(-1), targets.float().view(-1))
         else:
             # inference-time mini-optimization: only forward the lm_head on the very last position
