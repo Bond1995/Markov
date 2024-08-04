@@ -3,16 +3,28 @@ import torch
 import torch.nn.functional as F
 from contextlib import nullcontext, contextmanager, ExitStack
 
+def optimal_est(P, sequence_length, generator, extra_args, device):
+    x, y = get_batch(P, sequence_length, 1024, generator, extra_args, device)
+    opt_logits = torch.zeros(x.size(0), x.size(1), P.size(1), device=P.device)
+    for i in range(x.size(1)):
+        opt_logits[:,i,:] = P[x[:,i].to(int)]
+    opt_logits = torch.log(opt_logits)
+    opt_loss = F.nll_loss(opt_logits.view(-1, opt_logits.size(-1)), y.view(-1), ignore_index=-1)
+
+    return opt_loss
 
 def get_batch(P, seq_length, batch_size, generator, extra_args, device='cpu'):
     data = torch.zeros(batch_size, seq_length+1, device=device)
     if extra_args.initial == 'steady':
-        alpha = P[0,1]/(P[0,1]+P[1,0])
+        if extra_args.vocab_size == 2:
+            alpha = P[0,1]/(P[0,1]+P[1,0])
+        else:
+            alpha = 1.0 / extra_args.vocab_size
     elif extra_args.initial == 'uniform':
-        alpha = 0.5
+        alpha = 1.0 / extra_args.vocab_size
     else:
-        alpha = 0.5
-    data[:,0] = torch.bernoulli(alpha*torch.ones((batch_size,), device=device), generator=generator)
+        alpha = 1.0 / extra_args.vocab_size
+    data[:,0] = torch.multinomial(alpha*torch.ones(extra_args.vocab_size, device=device), batch_size, replacement=True, generator=generator)
     for i in range(seq_length):
         data[:,i+1] = get_next_symbols(P, data[:,i])
     x = data[:,:seq_length].to(int)
@@ -42,7 +54,7 @@ def eval(model, P, sequence_length, batch_size, generator, extra_args, device='c
             outputs = model(x, targets=y, get_logits=True)
         val_loss = outputs['loss']
         loss_list_val.append(val_loss)
-        acc_list.append(((outputs['logits'] > 0) == y.to(bool)).float().mean())
+        acc_list.append((outputs['logits'].argmax(-1) == y).float().mean())
 
     val_acc = torch.stack(acc_list).mean().item()
     val_loss = torch.stack(loss_list_val).mean().item()

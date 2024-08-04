@@ -38,9 +38,13 @@ def get_exp_name(args):
 
 def main(args):
     # Markov transition probabilities
-    p = args.p
-    q = args.q
-    P = torch.Tensor([[1-p, p],[q, 1-q]]).to(args.device)
+    if args.vocab_size == 2:
+        p = args.p
+        q = args.q
+        P = torch.Tensor([[1-p, p],[q, 1-q]]).to(args.device)
+    else:
+        P = torch.ones(args.vocab_size, args.vocab_size, device=args.device) * args.p / (args.vocab_size-1)
+        P[range(args.vocab_size), range(args.vocab_size)] = 1 - args.p
 
     generator = torch.Generator(device=args.device)
     generator.seed()

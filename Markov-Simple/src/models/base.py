@@ -65,15 +65,18 @@ class CausalSelfAttention(nn.Module):
         B, T, C = x.size() # batch size, sequence length, embedding dimensionality (n_embd)
 
         if (self.iter == 1) or (self.iter % 100 == 0):
-            print("W_Q W_K W_V:")
-            print(self.c_attn.weight)
-
+            WV = self.c_attn.weight[2*self.config.n_embd:].detach().cpu()
+            sv = torch.linalg.svdvals(WV)
+            energy = sv[0]**2 / torch.sum(sv**2)
             if self.wandb:
-                wandb.log({"att-qkv-"+str(self.iter): wandb.Image(self.c_attn.weight.numpy(force=True))})
-
-            np.save('att-qkv-'+str(self.iter)+'.pt', self.c_attn.weight.numpy(force=True))
+                wandb.log({
+                    "train/att-v-energy": energy.item(),
+                })
+            
+            np.save('att-v-'+str(self.iter)+'.pt', WV.numpy(force=True))
             if self.wandb:
-                wandb.save('att-qkv-'+str(self.iter)+'.pt.npy')
+                wandb.save('att-v-'+str(self.iter)+'.pt.npy')
+
             
 
         # calculate query, key, values for all heads in batch and move head forward to be the batch dim
@@ -145,6 +148,13 @@ class MLP(nn.Module):
             np.save('c_fc-'+str(self.iter)+'.pt', self.c_fc.weight.numpy(force=True))
             if self.wandb:
                 wandb.save('c_fc-'+str(self.iter)+'.pt.npy')
+            
+            sv = torch.linalg.svdvals(self.c_fc.weight.detach().cpu())
+            energy = sv[0]**2 / torch.sum(sv**2)
+            if self.wandb:
+                wandb.log({
+                    "train/c_fc_energy": energy.item(),
+                })
 
         self.iter += 1
 
@@ -167,7 +177,7 @@ class Block(nn.Module):
         if (self.iter == 1) or (self.iter % 100 == 0):
             y = self.attn(x)
             z = x + y
-            err = torch.mean(torch.norm(y[0], dim=1) / torch.norm(z[0], dim=1))
+            err = (y.norm(dim=2) / z.norm(dim=2)).mean()
             print("Approximation error:")
             print(err)
 
@@ -195,20 +205,16 @@ class GPTBase(nn.Module):
         self.iter = 1
         
         self.transformer = nn.ModuleDict(dict(
-            wte = nn.Linear(1, config.n_embd, bias=False), # changed!
+            wte = nn.Embedding(config.vocab_size, config.n_embd),
             wpe = nn.Embedding(config.sequence_length, config.n_embd),
             drop = nn.Dropout(config.dropout),
             h = nn.ModuleList([Block(id, config) for id in range(config.n_layer)]),
             #ln_f = LayerNorm(config.n_embd, bias=config.bias),
         ))
 
-        if self.config.no_tying:
-            self.lm_head = nn.Linear(config.n_embd, 1, bias=True) # changed! * 2
-        else:
-            if self.config.init == "lowrank":
-                self.b = nn.Parameter(torch.randn(1))
-            else:
-                self.b = nn.Parameter(torch.zeros(1))
+        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=True)
+        if not self.config.no_tying:
+            self.transformer.wte.weight = self.lm_head.weight
         # with weight tying when using torch.compile() some warnings get generated:
         # "UserWarning: functional_call was passed multiple values for tied weights.
         # This behavior is deprecated and will be an error in future versions"
@@ -226,9 +232,9 @@ class GPTBase(nn.Module):
                 elif pn.endswith('wpe.weight'):
                     torch.nn.init.constant_(p, -0.25)
                 elif pn.endswith('mlp.c_fc.weight'):
-                    torch.nn.init.constant_(p, 1)
+                    torch.nn.init.constant_(p, 2)
                 elif pn.endswith('mlp.c_proj.weight'):
-                    torch.nn.init.constant_(p, -1)
+                    torch.nn.init.constant_(p, -2)
         elif self.config.init == "lowrank":
             e = torch.abs(0.1*torch.randn(1))
             v = torch.randn(self.config.n_embd, 1) * self.config.v_std
@@ -288,7 +294,7 @@ class GPTBase(nn.Module):
         pos = torch.arange(0, t, dtype=torch.long, device=device).unsqueeze(0) # shape (1, t)
         
         # forward the GPT model itself
-        tok_emb = self.transformer.wte(idx.unsqueeze(-1).type(torch.float32)) # token embeddings of shape (b, t, n_embd)
+        tok_emb = self.transformer.wte(idx) # token embeddings of shape (b, t, n_embd)
         pos_emb = self.transformer.wpe(pos) # position embeddings of shape (1, t, n_embd)
         if (self.iter == 1) or (self.iter % 100 == 0):
             print("wte:")
@@ -305,7 +311,6 @@ class GPTBase(nn.Module):
             if self.wandb:
                 wandb.save('wpe-'+str(self.iter)+'.pt.npy')
 
-
         x = self.transformer.drop(tok_emb + pos_emb)
         for block in self.transformer.h:
             x = block(x)
@@ -313,27 +318,16 @@ class GPTBase(nn.Module):
 
         if targets is not None:
             # if we are given some desired targets also calculate the loss
-            if self.config.no_tying:
-                logits = self.lm_head(x).squeeze(-1) # (b, t)
-                if (self.iter == 1) or (self.iter % 100 == 0):
-                    print("lm_head:")
-                    print(self.lm_head.weight)
-                    print("bias:")
-                    print(self.lm_head.bias)
+            logits = self.lm_head(x) # (b, t, vocab_size)
+            if (self.iter == 1) or (self.iter % 100 == 0):
+                print("lm_head:")
+                print(self.lm_head.weight)
+                print("bias:")
+                print(self.lm_head.bias)
 
-                    if self.wandb:
-                        wandb.log({"lm_head-"+str(self.iter): wandb.Image(self.lm_head.weight.numpy(force=True))})
-            else:
-                logits = F.linear(x, self.transformer.wte.weight.t(), bias=self.b).squeeze(-1) # (b,t)
-                if (self.iter == 1) or (self.iter % 100 == 0):
-                    print("lm_head:")
-                    print(self.transformer.wte.weight.t())
-                    print("bias:")
-                    print(self.b)
-                    
-                    if self.wandb:
-                        wandb.log({"lm_head-"+str(self.iter): wandb.Image(self.transformer.wte.weight.t().numpy(force=True))})
-            loss = F.binary_cross_entropy_with_logits(logits.view(-1), targets.float().view(-1))
+                if self.wandb:
+                    wandb.log({"lm_head-"+str(self.iter): wandb.Image(self.lm_head.weight.numpy(force=True))})
+            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
         else:
             # inference-time mini-optimization: only forward the lm_head on the very last position
             logits = self.lm_head(x[:, [-1], :]) # note: using list [-1] to preserve the time dim
@@ -394,7 +388,7 @@ class GPTBase(nn.Module):
         # so let's manually remove 'lm_head.weight' from decay set. This will include
         # this tensor into optimization via transformer.wte.weight only, and not decayed.
         if not self.config.no_tying:
-            no_decay.add('b')
+            decay.remove('lm_head.weight')
 
         # validate that we considered every parameter
         param_dict = {pn: p for pn, p in self.named_parameters()}

@@ -103,19 +103,8 @@ class CausalSelfAttention(nn.Module):
             att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
             att = att.masked_fill(torch.tril(torch.ones(T, T, device=self.device)).view(1, 1, T, T) == 0, float('-inf'))
             att = F.softmax(att, dim=-1)
-            att_mean = att.mean(dim=0).squeeze()
-            att_std = att.std(dim=0).squeeze()
-
-            print("att_mean_"+str(self.id))
-            print(att_mean.numpy(force=True))
-            plt.imshow(att_mean.numpy(force=True), cmap='gray', interpolation='nearest')
-            if self.wandb:
-                wandb.log({"att_mean_"+str(self.id): plt})
-            print("att_std_"+str(self.id))
-            print(att_std.numpy(force=True))
-            plt.imshow(att_std.numpy(force=True), cmap='gray', interpolation='nearest')
-            if self.wandb:
-                wandb.log({"att_std_"+str(self.id): plt})
+            att_mean = att
+            att_std = att.std(dim=0)
 
             np.save('att_mean_'+str(self.id)+'.pt', att_mean.numpy(force=True))
             if self.wandb:

@@ -6,7 +6,7 @@ import wandb
 import time 
 import copy
 
-from .utils import eval, eval_probs, get_batch, save_checkpoint
+from .utils import eval, eval_probs, optimal_est, get_batch, save_checkpoint
 
 
 def train_base(model, opt, P, scheduler, iterations, acc_steps, batch_size, sequence_length, generator, eval_freq, distributed_backend, ckpt_path, extra_args):
@@ -60,6 +60,8 @@ def train_base(model, opt, P, scheduler, iterations, acc_steps, batch_size, sequ
                     print_string += f" [lr] {current_lr:.5f}"
                 print(print_string)
 
+                opt_loss = optimal_est(P, sequence_length, generator, extra_args, extra_args.device)
+
                 if extra_args.wandb:
                     wandb.log({
                         "iter": itr,
@@ -67,10 +69,11 @@ def train_base(model, opt, P, scheduler, iterations, acc_steps, batch_size, sequ
                         "val/loss": val_loss,
                         "val/perplexity": val_perplexity,
                         "val/acc": val_acc,
+                        "val/opt_loss": opt_loss,
                         "lr": current_lr,
                     })
-                
-                if itr == iterations:
+
+                '''if itr == iterations:
                     _, _, _, prob_vec = eval_probs(model, P, sequence_length, generator, extra_args,
                                                         device=extra_args.device, ctx=type_ctx)
                     if extra_args.wandb:
@@ -81,7 +84,7 @@ def train_base(model, opt, P, scheduler, iterations, acc_steps, batch_size, sequ
                         for i in range(len(prob_vec[1])):
                             wandb.log({
                                 "est/est_1": prob_vec[1][i].detach().cpu().item(),
-                            })
+                            })'''
                     
                     # if extra_args.eval_seq_prefix != 'none' and (itr % (eval_freq * 5) == 0 or itr == iterations):
                     #     if text_table is None:

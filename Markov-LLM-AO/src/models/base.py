@@ -10,6 +10,7 @@ https://github.com/huggingface/transformers/blob/main/src/transformers/models/gp
 import math
 import inspect
 
+import numpy as np
 import tiktoken
 import torch
 import wandb
@@ -60,7 +61,7 @@ class CausalSelfAttention(nn.Module):
         self.wandb = config.wandb
         self.iter = 1
 
-    def forward(self, x):
+    def forward(self, x, get_att=False):
         B, T, C = x.size() # batch size, sequence length, embedding dimensionality (n_embd)
 
         if self.iter == 2*self.iterations:
@@ -99,6 +100,23 @@ class CausalSelfAttention(nn.Module):
             y = att @ v # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
         y = y.transpose(1, 2).contiguous().view(B, T, C) # re-assemble all head outputs side by side
 
+        if get_att:
+            att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
+            att = att.masked_fill(torch.tril(torch.ones(T, T, device=self.device)).view(1, 1, T, T) == 0, float('-inf'))
+            att = F.softmax(att, dim=-1)
+            att_mean = att
+            att_std = att.std(dim=0)
+
+            np.save('att_mean_'+str(self.id)+'.pt', att_mean.numpy(force=True))
+            if self.wandb:
+                wandb.save('att_mean_'+str(self.id)+'.pt.npy')
+            np.save('att_std_'+str(self.id)+'.pt', att_std.numpy(force=True))
+            if self.wandb:
+                wandb.save('att_std_'+str(self.id)+'.pt.npy')
+        else:
+            att_mean = None
+            att_std = None
+        
         # output projection
         y = self.resid_dropout(self.c_proj(y))
         if self.iter == 2*self.iterations:
@@ -107,7 +125,7 @@ class CausalSelfAttention(nn.Module):
         
         self.iter += 1
 
-        return y
+        return y, att_mean, att_std
 
 
 class MLP(nn.Module):
@@ -148,11 +166,10 @@ class Block(nn.Module):
         #self.ln_2 = LayerNorm(config.n_embd, bias=config.bias)
         #self.mlp = MLP(id, config)
 
-    def forward(self, x):
-        #x = x + self.attn(self.ln_1(x))
-        #x = x + self.mlp(self.ln_2(x))
-        x = x + self.attn(x)
-        return x
+    def forward(self, x, get_att=False):
+        z, att_mean, att_std = self.attn(x, get_att=get_att)
+        x = x + z
+        return x, att_mean, att_std
     
 
 class GPTBase(nn.Module):
@@ -223,7 +240,7 @@ class GPTBase(nn.Module):
         elif isinstance(module, nn.Embedding):
             torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
 
-    def forward(self, idx, targets=None, get_logits=False):
+    def forward(self, idx, targets=None, get_logits=False, get_att=False):
         device = idx.device
         b, t = idx.size()
         if self.iter == 2*self.iterations:
@@ -243,26 +260,25 @@ class GPTBase(nn.Module):
 
         x = self.transformer.drop(tok_emb + pos_emb)
         for block in self.transformer.h:
-            x = block(x)
+            x, att_mean, att_std = block(x, get_att=get_att)
         #x = self.transformer.ln_f(x) # (b, t, n_embd)
 
         if targets is not None:
             # if we are given some desired targets also calculate the loss
             #logits = self.lm_head(x) # (b, t, vocab_size)
             logits = x
-            if self.iter == 2*self.iterations:
-                print("lm_head:")
-                print(self.lm_head.weight)
             loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
         else:
             # inference-time mini-optimization: only forward the lm_head on the very last position
             logits = self.lm_head(x[:, [-1], :]) # note: using list [-1] to preserve the time dim
             loss = None
         logits = logits if get_logits else None
+        att_mean = att_mean if get_att else None
+        att_std = att_std if get_att else None
 
         self.iter += 1
 
-        return {'logits': logits, 'loss': loss}
+        return {'logits': logits, 'loss': loss, 'att_mean': att_mean, 'att_std': att_std}
 
     def crop_sequence_length(self, sequence_length):
         # model surgery to decrease the block size if necessary

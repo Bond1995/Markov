@@ -6,7 +6,7 @@ import wandb
 import time 
 import copy
 
-from .utils import eval, eval_probs, get_batch, save_checkpoint
+from .utils import eval, eval_probs, eval_att, get_batch, save_checkpoint
 
 
 def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_size, sequence_length, generator, eval_freq, ckpt_path, distributed_backend, extra_args):
@@ -84,6 +84,14 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
                     if extra_args.wandb:
                         wandb.log({
                             "val/opt_loss": opt_loss.detach().cpu().item(),
+                        })
+
+                    att_mean, att_std = eval_att(model, P, order, sequence_length, 100,
+                                                        generator, extra_args, device=extra_args.device, ctx=type_ctx)
+                    if extra_args.wandb:
+                        wandb.log({
+                            "val/att_mean": att_mean,
+                            "val/att_std": att_std,
                         })
                     
                     # if extra_args.eval_seq_prefix != 'none' and (itr % (eval_freq * 5) == 0 or itr == iterations):

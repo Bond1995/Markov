@@ -102,6 +102,18 @@ def eval_probs(model, P, order, sequence_length, generator, extra_args, device='
     return val_acc, val_loss, val_perplexity, prob_vec, opt_loss
 
 @torch.no_grad()
+def eval_att(model, P, order, sequence_length, batch_size, generator, extra_args, device='cpu', ctx=nullcontext()):
+    assert model.training == False
+    
+    x, y = get_batch(P, order, sequence_length, batch_size, generator, extra_args, device=device)
+    with ctx:
+        outputs = model(x, targets=y, get_logits=True, get_att=True)
+    att_mean = outputs['att_mean']
+    att_std = outputs['att_std']
+
+    return att_mean, att_std
+
+@torch.no_grad()
 def eval_sparse(model, P, sequence_length, batch_size, device='cpu', max_num_batches=24, ctx=nullcontext(), alpha_th=None, drop_k=None):
     assert model.training == False
 
