@@ -12,17 +12,14 @@ import inspect
 
 import tiktoken
 import torch
-import wandb
-import numpy as np
 import torch.nn as nn
-import matplotlib.pyplot as plt
 from torch.nn import functional as F
 
 
 class LayerNorm(nn.Module):
     """ LayerNorm but with an optional bias. PyTorch doesn't support simply bias=False """
 
-    def __init__(self, ndim, bias):
+    def __init__(self, ndim, bias=False):
         super().__init__()
         self.weight = nn.Parameter(torch.ones(ndim))
         self.bias = nn.Parameter(torch.zeros(ndim)) if bias else None
@@ -33,11 +30,20 @@ class LayerNorm(nn.Module):
 
 class CausalSelfAttention(nn.Module):
 
-    def __init__(self, id, config):
+    def __init__(self, config):
         super().__init__()
         assert config.n_embd % config.n_head == 0
+        # sparsity parameters
+        self.l1_lambda = config.lmbda
+        self.alphas_from = config.alphas_from # either 'x' or 'q'
+        self.n_dims_per_head = int(config.n_embd // config.n_head)
+        self.use_sigmoid = config.use_sigmoid
+        self.alphas_mlp = nn.Sequential(nn.Linear(config.n_embd, config.n_alpha_mlp), nn.ReLU(), nn.Linear(config.n_alpha_mlp, config.n_head))
+        if self.l1_lambda > 0.0: 
+            self.alphas_mlp[2].bias.data.fill_(1.0) # init bias to high value so that at first the "gates" are open
         # key, query, value projections for all heads, but in a batch
         self.c_attn = nn.Linear(config.n_embd, 3 * config.n_embd, bias=config.bias)
+        # output projection
         self.c_proj = nn.Linear(config.n_embd, config.n_embd, bias=config.bias)
         # regularization
         self.attn_dropout = nn.Dropout(config.dropout)
@@ -45,8 +51,6 @@ class CausalSelfAttention(nn.Module):
         self.n_head = config.n_head
         self.n_embd = config.n_embd
         self.dropout = config.dropout
-        self.id = id
-        self.iterations = config.iterations
         # flash attention make GPU go brrrrr but support is only in PyTorch >= 2.0
         self.flash = hasattr(torch.nn.functional, 'scaled_dot_product_attention')
         if not self.flash:
@@ -55,57 +59,47 @@ class CausalSelfAttention(nn.Module):
             self.register_buffer("bias", torch.tril(torch.ones(config.sequence_length, config.sequence_length))
                                         .view(1, 1, config.sequence_length, config.sequence_length))
 
-        self.memory = config.memory
-        self.device = config.device
-        self.config = config
-        self.wandb = config.wandb
-        self.iter = 1
-
-    def forward(self, x):
+    def forward(self, x, alpha_th=None, drop_k=None, get_alphas=False):
         B, T, C = x.size() # batch size, sequence length, embedding dimensionality (n_embd)
-
-        if (self.iter == 1) or (self.iter % 100 == 0):
-            WV = self.c_attn.weight[2*self.config.n_embd:].detach().cpu()
-            sv = torch.linalg.svdvals(WV)
-            energy1 = sv[0]**2 / torch.sum(sv**2)
-            energy2 = torch.sum(sv[:2]**2) / torch.sum(sv**2)
-            energy3 = torch.sum(sv[:3]**2) / torch.sum(sv**2)
-            energy4 = torch.sum(sv[:4]**2) / torch.sum(sv**2)
-            energy5 = torch.sum(sv[:5]**2) / torch.sum(sv**2)
-            if self.wandb:
-                wandb.log({
-                    "train/att-v-energy1": energy1.item(),
-                    "train/att-v-energy2": energy2.item(),
-                    "train/att-v-energy3": energy3.item(),
-                    "train/att-v-energy4": energy4.item(),
-                    "train/att-v-energy5": energy5.item(),
-                })
-            
-            np.save('att-v-'+str(self.iter)+'.pt', WV.numpy(force=True))
-            if self.wandb:
-                wandb.save('att-v-'+str(self.iter)+'.pt.npy')
-
-            
 
         # calculate query, key, values for all heads in batch and move head forward to be the batch dim
         q, k ,v  = self.c_attn(x).split(self.n_embd, dim=2)
+        # compute alphas
+        num_head_pruned, alphas = (0, 0), None
+        if self.l1_lambda > 0 or drop_k is not None:
+            q_ = q if self.alphas_from == 'q' else x
+            if self.use_sigmoid:
+                alphas = torch.sigmoid(self.alphas_mlp(q_))
+            else:
+                alphas = torch.max(torch.min(self.alphas_mlp(q_).abs(), torch.ones(1, device=x.device)), torch.zeros(1, device=x.device)) 
+            l1_penalty = alphas.view(B,-1).abs().sum(dim=-1) # l1 loss computed for each sequence 
+            if alpha_th is not None: # then we set the alphas under alpha_th to 0
+                mask = alphas <= alpha_th
+                num_head_pruned = (mask.sum().float().item(), float(mask.numel()))
+                alphas[mask] = 0.0
+            elif drop_k is not None:
+                if self.l1_lambda == 0 :
+                    alphas = torch.rand_like(alphas)
+                alphas = alphas.view(B,-1)
+                values, _ = torch.sort(alphas) # sorting the alphas for all heads
+                th = values[:, drop_k].view(B,1) # for each sequence in the batch, finding the threshold value s.t. drop_k alphas are lower
+                alphas[alphas < th] = 0.0 # set drop_k alphas to 0 for each sequence
+                if self.l1_lambda == 0 :
+                    alphas[alphas >= th] = 1.0
+                alphas = alphas.view(B, T, self.n_head)
+            alphas = alphas.unsqueeze(-1).expand(B, T, self.n_head, self.n_dims_per_head)
+            alphas = alphas.reshape(*x.shape)
+        else: 
+            l1_penalty = torch.zeros(1, device=x.device)
+        # reshape query, key, values
         k = k.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
         q = q.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
-        v = v.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs);
+        v = v.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
 
         # causal self-attention; Self-attend: (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T)
         if self.flash:
             # efficient attention using Flash Attention CUDA kernels
-            # Memory attention mask
-            if self.memory >= 0:
-                print("Using masking!")
-                M1 = torch.ones(T, T, dtype=torch.bool).tril(diagonal=0)
-                M2 = torch.ones(T, T, dtype=torch.bool).tril(diagonal=-self.memory-1)
-                attn_mask = M1 * (~M2)
-                y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask.to(self.device), dropout_p=self.dropout)
-            else:
-                y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=None, dropout_p=self.dropout, is_causal=True)
-            
+            y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=None, dropout_p=self.dropout, is_causal=True)
         else:
             # manual implementation of attention
             att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
@@ -116,99 +110,48 @@ class CausalSelfAttention(nn.Module):
         y = y.transpose(1, 2).contiguous().view(B, T, C) # re-assemble all head outputs side by side
 
         # output projection
-        y = self.resid_dropout(self.c_proj(y))
-
-        self.iter += 1
-
-        return y
+        if self.l1_lambda > 0 or drop_k is not None:
+            y = self.resid_dropout(self.c_proj(alphas * y)) # multiply with the alpha values
+        else: 
+            y = self.resid_dropout(self.c_proj(y))
+        alphas = alphas if get_alphas else None
+        return y, l1_penalty, num_head_pruned, alphas
 
 
 class MLP(nn.Module):
 
-    def __init__(self, id, config):
+    def __init__(self, config):
         super().__init__()
         self.c_fc    = nn.Linear(config.n_embd, 4 * config.n_embd, bias=config.bias)
         self.c_proj  = nn.Linear(4 * config.n_embd, config.n_embd, bias=config.bias)
         self.dropout = nn.Dropout(config.dropout)
-        self.activation = nn.ReLU()
-        self.config = config
-        self.wandb = config.wandb
-        self.id = id
-        self.iterations = config.iterations
-        self.iter = 1
+        self.activation = nn.GELU()
 
     def forward(self, x):
         x = self.c_fc(x)
         x = self.activation(x)
         x = self.c_proj(x)
         x = self.dropout(x)
-        if (self.iter == 1) or (self.iter % 100 == 0):
-            print("c_fc:")
-            print(self.c_fc.weight)
-            print("c_proj:")
-            print(self.c_proj.weight)
-
-            if self.wandb:
-                wandb.log({"c_fc-"+str(self.iter): wandb.Image(self.c_fc.weight.numpy(force=True))})
-            if self.wandb:
-                wandb.log({"c_proj-"+str(self.iter): wandb.Image(self.c_proj.weight.numpy(force=True))})
-
-            np.save('c_fc-'+str(self.iter)+'.pt', self.c_fc.weight.numpy(force=True))
-            if self.wandb:
-                wandb.save('c_fc-'+str(self.iter)+'.pt.npy')
-            
-            sv = torch.linalg.svdvals(self.c_fc.weight.detach().cpu())
-            energy1 = sv[0]**2 / torch.sum(sv**2)
-            energy2 = torch.sum(sv[:2]**2) / torch.sum(sv**2)
-            energy3 = torch.sum(sv[:3]**2) / torch.sum(sv**2)
-            energy4 = torch.sum(sv[:4]**2) / torch.sum(sv**2)
-            energy5 = torch.sum(sv[:5]**2) / torch.sum(sv**2)
-            if self.wandb:
-                wandb.log({
-                    "train/c_fc_energy1": energy1.item(),
-                    "train/c_fc_energy2": energy2.item(),
-                    "train/c_fc_energy3": energy3.item(),
-                    "train/c_fc_energy4": energy4.item(),
-                    "train/c_fc_energy5": energy5.item(),
-                })
-
-        self.iter += 1
-
         return x
 
 
 class Block(nn.Module):
 
-    def __init__(self, id, config):
+    def __init__(self, config):
         super().__init__()
-        #self.ln_1 = LayerNorm(config.n_embd, bias=config.bias)
-        self.attn = CausalSelfAttention(id, config)
-        #self.ln_2 = LayerNorm(config.n_embd, bias=config.bias)
-        self.mlp = MLP(id, config)
-        self.iterations = config.iterations
-        self.wandb = config.wandb
-        self.iter = 1
+        self.ln_1 = LayerNorm(config.n_embd, bias=config.bias)
+        self.attn = CausalSelfAttention(config)
+        self.ln_2 = LayerNorm(config.n_embd, bias=config.bias)
+        self.mlp = MLP(config)
 
-    def forward(self, x):
-        if (self.iter == 1) or (self.iter % 100 == 0):
-            y = self.attn(x)
-            z = x + y
-            err = (y.norm(dim=2) / z.norm(dim=2)).mean()
-            print("Approximation error:")
-            print(err)
-
-            if self.wandb:
-                wandb.log({"val/approx-err": err.item()})
-
-        x = x + self.attn(x)
-        x = x + self.mlp(x)
-
-        self.iter += 1
-
-        return x
+    def forward(self, x, alpha_th=None, drop_k=None, get_alphas=False):
+        att, l1_penalty, num_head_pruned, alphas = self.attn(self.ln_1(x), alpha_th=alpha_th, drop_k=drop_k, get_alphas=get_alphas)
+        x = x + att
+        x = x + self.mlp(self.ln_2(x))
+        return x, l1_penalty, num_head_pruned, alphas
     
 
-class GPTBase(nn.Module):
+class GPTSparseHeadsQ(nn.Module):
 
     def __init__(self, config):
         super().__init__()
@@ -216,67 +159,29 @@ class GPTBase(nn.Module):
         assert config.sequence_length is not None
         self.config = config
         self.tokenizer = tiktoken.get_encoding("gpt2")
-        self.wandb = config.wandb
-        self.iterations = config.iterations
-        self.iter = 1
-        
+        # sparsity parameters
+        self.l1_lambda = config.lmbda
+
         self.transformer = nn.ModuleDict(dict(
             wte = nn.Embedding(config.vocab_size, config.n_embd),
             wpe = nn.Embedding(config.sequence_length, config.n_embd),
             drop = nn.Dropout(config.dropout),
-            h = nn.ModuleList([Block(id, config) for id in range(config.n_layer)]),
-            #ln_f = LayerNorm(config.n_embd, bias=config.bias),
+            h = nn.ModuleList([Block(config) for _ in range(config.n_layer)]),
+            ln_f = LayerNorm(config.n_embd, bias=config.bias),
         ))
-
-        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=True)
-        if not self.config.no_tying:
-            self.transformer.wte.weight = self.lm_head.weight
+        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
         # with weight tying when using torch.compile() some warnings get generated:
         # "UserWarning: functional_call was passed multiple values for tied weights.
         # This behavior is deprecated and will be an error in future versions"
         # not 100% sure what this is, so far seems to be harmless. TODO investigate
-        #self.transformer.wte.weight.data = self.lm_head.weight.data.view(self.lm_head.weight.shape[1], self.lm_head.weight.shape[0]) # https://paperswithcode.com/method/weight-tying
+        self.transformer.wte.weight = self.lm_head.weight # https://paperswithcode.com/method/weight-tying
 
-        self.register_buffer("alpha", 2 * torch.bernoulli(0.5*torch.ones(self.config.n_embd,1)) - 1)
-        self.register_buffer("w", torch.abs(0.1*torch.randn(1)) * (2 * torch.bernoulli(0.5*torch.ones(4*self.config.n_embd,1)) - 1))
         # init all weights
         self.apply(self._init_weights)
-        if self.config.init == "good":
-            for pn, p in self.named_parameters():
-                if pn.endswith('wte.weight'):
-                    torch.nn.init.constant_(p, 0.5)
-                elif pn.endswith('wpe.weight'):
-                    torch.nn.init.constant_(p, -0.25)
-                elif pn.endswith('mlp.c_fc.weight'):
-                    torch.nn.init.constant_(p, 2)
-                elif pn.endswith('mlp.c_proj.weight'):
-                    torch.nn.init.constant_(p, -2)
-        elif self.config.init == "lowrank":
-            e = torch.abs(0.1*torch.randn(1))
-            v = torch.randn(self.config.n_embd, 1) * self.config.v_std
-            att_init = 0.02*torch.randn(3*self.config.n_embd,self.config.n_embd)
-            att_init[2*self.config.n_embd:,:].copy_(self.alpha @ v.T)
-
-            for pn, p in self.named_parameters():
-                if pn.endswith('wte.weight'):
-                    with torch.no_grad():
-                        p.copy_(e.item()*self.alpha)
-                if pn.endswith('wpe.weight'):
-                    with torch.no_grad():
-                        p.copy_(torch.ones(p.shape[0],1) @ (-0.5*e.item()*self.alpha.T))
-                if pn.endswith('attn.c_attn.weight'):
-                    with torch.no_grad():
-                        p.copy_(att_init)
-                if pn.endswith('mlp.c_fc.weight'):
-                    with torch.no_grad():
-                        p.copy_(self.w @ self.alpha.T)
-                if pn.endswith('mlp.c_proj.weight'):
-                    with torch.no_grad():
-                        p.copy_(self.alpha @ self.w.T)
-        else:
-            for pn, p in self.named_parameters():
-                if pn.endswith('c_proj.weight'):
-                    torch.nn.init.normal_(p, mean=0.0, std=0.02/math.sqrt(2 * config.n_layer))
+        # apply special scaled init to the residual projections, per GPT-2 paper
+        for pn, p in self.named_parameters():
+            if pn.endswith('c_proj.weight'):
+                torch.nn.init.normal_(p, mean=0.0, std=0.02/math.sqrt(2 * config.n_layer))
 
         # report number of parameters
         print("number of parameters: %.2fM" % (self.get_num_params()/1e6,))
@@ -301,57 +206,42 @@ class GPTBase(nn.Module):
         elif isinstance(module, nn.Embedding):
             torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
 
-    def forward(self, idx, targets=None, get_logits=False):
+    def forward(self, idx, targets=None, alpha_th=None, drop_k=None, get_logits=False, get_alphas=False):
         device = idx.device
         b, t = idx.size()
-        if (self.iter == 1) or (self.iter % 100 == 0):
-            print(idx[0,:100])
         assert t <= self.config.sequence_length, f"Cannot forward sequence of length {t}, block size is only {self.config.sequence_length}"
         pos = torch.arange(0, t, dtype=torch.long, device=device).unsqueeze(0) # shape (1, t)
-        
+
         # forward the GPT model itself
         tok_emb = self.transformer.wte(idx) # token embeddings of shape (b, t, n_embd)
         pos_emb = self.transformer.wpe(pos) # position embeddings of shape (1, t, n_embd)
-        if (self.iter == 1) or (self.iter % 100 == 0):
-            print("wte:")
-            print(self.transformer.wte.weight)
-            print("wpe:")
-            print(self.transformer.wpe.weight)
-
-            if self.wandb:
-                wandb.log({"wte-"+str(self.iter): wandb.Image(self.transformer.wte.weight.numpy(force=True))})
-            if self.wandb:
-                wandb.log({"wpe-"+str(self.iter): wandb.Image(self.transformer.wpe.weight[:100].numpy(force=True))})
-            
-            np.save('wpe-'+str(self.iter)+'.pt', self.transformer.wpe.weight.numpy(force=True))
-            if self.wandb:
-                wandb.save('wpe-'+str(self.iter)+'.pt.npy')
-
         x = self.transformer.drop(tok_emb + pos_emb)
+        l1_penalties, alphas_per_layer, num_head_pruned_per_layer, num_heads_per_layer = [], [], [], []
         for block in self.transformer.h:
-            x = block(x)
-        #x = self.transformer.ln_f(x) # (b, t, n_embd)
+            x, l1_penalty, (nhp, nh), alphas = block(x, alpha_th=alpha_th, drop_k=drop_k, get_alphas=get_alphas)
+            l1_penalties.append(l1_penalty)
+            #alphas_per_layer.append(alphas)
+            num_head_pruned_per_layer.append(nhp)
+            num_heads_per_layer.append(nh)
+        x = self.transformer.ln_f(x)
 
         if targets is not None:
             # if we are given some desired targets also calculate the loss
-            logits = self.lm_head(x) # (b, t, vocab_size)
-            if (self.iter == 1) or (self.iter % 100 == 0):
-                print("lm_head:")
-                print(self.lm_head.weight)
-                print("bias:")
-                print(self.lm_head.bias)
-
-                if self.wandb:
-                    wandb.log({"lm_head-"+str(self.iter): wandb.Image(self.lm_head.weight.numpy(force=True))})
-            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
+            logits = self.lm_head(x)
+            l1_loss = torch.stack(l1_penalties).sum(dim=0).mean()
+            ce_loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
+            loss = ce_loss + self.l1_lambda * l1_loss
         else:
             # inference-time mini-optimization: only forward the lm_head on the very last position
             logits = self.lm_head(x[:, [-1], :]) # note: using list [-1] to preserve the time dim
-            loss = None
-        logits = logits if get_logits else None
-        self.iter += 1
+            loss, ce_loss, l1_loss = None, torch.zeros(1), torch.zeros(1)
 
-        return {'logits': logits, 'loss': loss}
+        logits = logits if get_logits else None
+        alphas_per_layer = alphas_per_layer if get_alphas else None
+
+        return {'logits': logits, 'loss': loss, 'ce_loss': ce_loss.cpu().item(), 'l1_loss': l1_loss.cpu().item(), 
+                'alphas': alphas_per_layer, 'num_head_pruned_per_layer': num_head_pruned_per_layer, 
+                'num_heads_per_layer': num_heads_per_layer}
 
     def crop_sequence_length(self, sequence_length):
         # model surgery to decrease the block size if necessary
@@ -403,8 +293,7 @@ class GPTBase(nn.Module):
         # will only return the first occurence, key'd by 'transformer.wte.weight', below.
         # so let's manually remove 'lm_head.weight' from decay set. This will include
         # this tensor into optimization via transformer.wte.weight only, and not decayed.
-        if not self.config.no_tying:
-            decay.remove('lm_head.weight')
+        decay.remove('lm_head.weight')
 
         # validate that we considered every parameter
         param_dict = {pn: p for pn, p in self.named_parameters()}
@@ -421,7 +310,7 @@ class GPTBase(nn.Module):
         ]
 
     @torch.no_grad()
-    def generate(self, idx, max_new_tokens, temperature=1.0, top_k=None):
+    def generate(self, idx, max_new_tokens, temperature=1.0, top_k=None, alpha_th=None, drop_k=None):
         """
         Take a conditioning sequence of indices idx (LongTensor of shape (b,t)) and complete
         the sequence max_new_tokens times, feeding the predictions back into the model each time.
@@ -431,7 +320,7 @@ class GPTBase(nn.Module):
             # if the sequence context is growing too long we must crop it at sequence_length
             idx_cond = idx if idx.size(1) <= self.config.sequence_length else idx[:, -self.config.sequence_length:]
             # forward the model to get the logits for the index in the sequence
-            logits = self(idx_cond, get_logits=True)['logits']
+            logits = self(idx_cond, alpha_th=alpha_th, drop_k=drop_k, get_logits=True)['logits']
             # pluck the logits at the final step and scale by desired temperature
             logits = logits[:, -1, :] / temperature
             # optionally crop the logits to only the top k options
@@ -448,7 +337,7 @@ class GPTBase(nn.Module):
         return idx
     
     @torch.no_grad()
-    def generate_from_string(self, in_str, max_new_tokens, temperature=1.0, top_k=None):
+    def generate_from_string(self, in_str, max_new_tokens, temperature=1.0, top_k=None, alpha_th=None, drop_k=None):
         idx = torch.tensor(self.tokenizer.encode(in_str, allowed_special={"<|endoftext|>"})).view(1,-1).to(self.lm_head.weight.device)
-        out_idx = self.generate(idx, max_new_tokens, temperature, top_k).view(-1).to('cpu').numpy()
+        out_idx = self.generate(idx, max_new_tokens, temperature, top_k, alpha_th=alpha_th, drop_k=drop_k).view(-1).to('cpu').numpy()
         return self.tokenizer.decode(out_idx)

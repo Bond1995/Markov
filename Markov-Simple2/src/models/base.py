@@ -221,16 +221,20 @@ class GPTBase(nn.Module):
         self.iter = 1
         
         self.transformer = nn.ModuleDict(dict(
-            wte = nn.Embedding(config.vocab_size, config.n_embd),
+            wte = nn.Linear(1, config.n_embd, bias=False), # changed!
             wpe = nn.Embedding(config.sequence_length, config.n_embd),
             drop = nn.Dropout(config.dropout),
             h = nn.ModuleList([Block(id, config) for id in range(config.n_layer)]),
             #ln_f = LayerNorm(config.n_embd, bias=config.bias),
         ))
 
-        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=True)
-        if not self.config.no_tying:
-            self.transformer.wte.weight = self.lm_head.weight
+        if self.config.no_tying:
+            self.lm_head = nn.Linear(config.n_embd, 1, bias=True) # changed! * 2
+        else:
+            if self.config.init == "lowrank":
+                self.b = nn.Parameter(torch.randn(1))
+            else:
+                self.b = nn.Parameter(torch.zeros(1))
         # with weight tying when using torch.compile() some warnings get generated:
         # "UserWarning: functional_call was passed multiple values for tied weights.
         # This behavior is deprecated and will be an error in future versions"
@@ -310,7 +314,7 @@ class GPTBase(nn.Module):
         pos = torch.arange(0, t, dtype=torch.long, device=device).unsqueeze(0) # shape (1, t)
         
         # forward the GPT model itself
-        tok_emb = self.transformer.wte(idx) # token embeddings of shape (b, t, n_embd)
+        tok_emb = self.transformer.wte(idx.unsqueeze(-1).type(torch.float32)) # token embeddings of shape (b, t, n_embd)
         pos_emb = self.transformer.wpe(pos) # position embeddings of shape (1, t, n_embd)
         if (self.iter == 1) or (self.iter % 100 == 0):
             print("wte:")
@@ -334,16 +338,27 @@ class GPTBase(nn.Module):
 
         if targets is not None:
             # if we are given some desired targets also calculate the loss
-            logits = self.lm_head(x) # (b, t, vocab_size)
-            if (self.iter == 1) or (self.iter % 100 == 0):
-                print("lm_head:")
-                print(self.lm_head.weight)
-                print("bias:")
-                print(self.lm_head.bias)
+            if self.config.no_tying:
+                logits = self.lm_head(x).squeeze(-1) # (b, t)
+                if (self.iter == 1) or (self.iter % 100 == 0):
+                    print("lm_head:")
+                    print(self.lm_head.weight)
+                    print("bias:")
+                    print(self.lm_head.bias)
 
-                if self.wandb:
-                    wandb.log({"lm_head-"+str(self.iter): wandb.Image(self.lm_head.weight.numpy(force=True))})
-            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
+                    if self.wandb:
+                        wandb.log({"lm_head-"+str(self.iter): wandb.Image(self.lm_head.weight.numpy(force=True))})
+            else:
+                logits = F.linear(x, self.transformer.wte.weight.t(), bias=self.b).squeeze(-1) # (b,t)
+                if (self.iter == 1) or (self.iter % 100 == 0):
+                    print("lm_head:")
+                    print(self.transformer.wte.weight.t())
+                    print("bias:")
+                    print(self.b)
+                    
+                    if self.wandb:
+                        wandb.log({"lm_head-"+str(self.iter): wandb.Image(self.transformer.wte.weight.t().numpy(force=True))})
+            loss = F.binary_cross_entropy_with_logits(logits.view(-1), targets.float().view(-1))
         else:
             # inference-time mini-optimization: only forward the lm_head on the very last position
             logits = self.lm_head(x[:, [-1], :]) # note: using list [-1] to preserve the time dim
@@ -404,7 +419,7 @@ class GPTBase(nn.Module):
         # so let's manually remove 'lm_head.weight' from decay set. This will include
         # this tensor into optimization via transformer.wte.weight only, and not decayed.
         if not self.config.no_tying:
-            decay.remove('lm_head.weight')
+            no_decay.add('b')
 
         # validate that we considered every parameter
         param_dict = {pn: p for pn, p in self.named_parameters()}
