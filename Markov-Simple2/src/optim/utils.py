@@ -54,7 +54,7 @@ def eval(model, P, sequence_length, batch_size, generator, extra_args, device='c
             outputs = model(x, targets=y, get_logits=True)
         val_loss = outputs['loss']
         loss_list_val.append(val_loss)
-        acc_list.append((outputs['logits'].argmax(-1) == y).float().mean())
+        acc_list.append(((outputs['logits'] > 0) == y.to(bool)).float().mean())
 
     val_acc = torch.stack(acc_list).mean().item()
     val_loss = torch.stack(loss_list_val).mean().item()
