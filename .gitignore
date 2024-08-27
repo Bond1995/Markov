@@ -1,0 +1,6 @@
+# Ignore all __pycache__ directories recursively
+__pycache__/
+
+# Alternatively, you can use this to ignore all pycaches and .pyc files
+**/__pycache__/
+*.py[cod]
