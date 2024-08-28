@@ -8,3 +8,4 @@ __pycache__/
 # WandB directories
 wandb/
 Markov-LLM-depth/wandb
+Markov-LLM-depth/*.npy
