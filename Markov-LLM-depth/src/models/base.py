@@ -87,7 +87,6 @@ class CausalSelfAttention(nn.Module):
 
     def forward(self, x, get_att=False):
         B, T, C = x.size() # batch size, sequence length, embedding dimensionality (n_embd)
-        print("id" + str(self.id) + " x:")
         if self.iter == self.iterations + np.floor(self.iterations/self.config.eval_freq):
             print("id" + str(self.id) + " W_Q W_K W_V:")
             print(self.c_attn.weight.cpu().detach().type(torch.float).numpy())

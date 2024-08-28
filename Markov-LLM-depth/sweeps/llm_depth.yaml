@@ -1,6 +1,6 @@
 name: "markov_llm_depth_heads"
 method: grid
-project: "markov-LLM-depth-heads-test"
+project: "markov-LLM-depth-heads"
 parameters:
   chain:
     values: ["random"]
@@ -19,8 +19,7 @@ parameters:
   iterations:
     values: [10000]
   seed:
-    values: [1, 2, 3]  # Corresponds to the `j` loop in the original script
-    
+    values: [1, 2, 3] 
 
 command:
   - python

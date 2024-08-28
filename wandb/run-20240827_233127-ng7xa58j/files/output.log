@@ -1,0 +1,5 @@
+Training model=base
+{'config_format': 'markov', 'batch_size': 16, 'acc_steps': 1, 'seed': 0, 'device': device(type='cuda', index=0), 'iterations': 1000, 'lr': 0.002, 'warmup_percent': 0.02, 'weight_decay': 0.001, 'beta1': 0.9, 'beta2': 0.95, 'scheduler': 'cos', 'opt': 'adamw', 'eval_freq': 1, 'results_base_folder': './exps', 'grad_clip': 0.0, 'dataset': 'markov', 'vocab_size': 2, 'data_in_ram': False, 'model': 'base', 'use_pretrained': 'none', 'dropout': 0, 'n_head': 1, 'n_layer': 1, 'n_embd': 8, 'sequence_length': 1024, 'dtype': torch.float16, 'bias': False, 'no_compile': False, 'wandb': False, 'wandb_project': 'bias-test', 'wandb_run_prefix': 'none', 'eval_seq_prefix': '0', 'distributed_backend': None, 'p': 0.5, 'q': 0.5, 'order': 1, 'chain': 'random', 'memory': -1, 'initial': 'uniform', 'init': 'base', 'init_value': 1.0, 'world_size': 1}
+9002
+Markov transition matrix:
+tensor([[0.1770, 0.8230],
