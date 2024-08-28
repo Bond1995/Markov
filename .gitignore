@@ -4,3 +4,7 @@ __pycache__/
 # Alternatively, you can use this to ignore all pycaches and .pyc files
 **/__pycache__/
 *.py[cod]
+
+# WandB directories
+wandb/
+Markov-LLM-depth/wandb
