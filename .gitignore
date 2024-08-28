@@ -9,3 +9,4 @@ __pycache__/
 wandb/
 Markov-LLM-depth/wandb
 Markov-LLM-depth/*.npy
+Markov-LLM-depth/exps/*
