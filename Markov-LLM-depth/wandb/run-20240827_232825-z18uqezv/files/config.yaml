@@ -1,0 +1,156 @@
+wandb_version: 1
+
+config_format:
+  desc: null
+  value: markov
+batch_size:
+  desc: null
+  value: 16
+acc_steps:
+  desc: null
+  value: 1
+seed:
+  desc: null
+  value: 0
+device:
+  desc: null
+  value: cuda:0
+iterations:
+  desc: null
+  value: 1000
+lr:
+  desc: null
+  value: 0.002
+warmup_percent:
+  desc: null
+  value: 0.02
+weight_decay:
+  desc: null
+  value: 0.001
+beta1:
+  desc: null
+  value: 0.9
+beta2:
+  desc: null
+  value: 0.95
+scheduler:
+  desc: null
+  value: cos
+opt:
+  desc: null
+  value: adamw
+eval_freq:
+  desc: null
+  value: 1
+results_base_folder:
+  desc: null
+  value: ./exps
+grad_clip:
+  desc: null
+  value: 0.0
+dataset:
+  desc: null
+  value: markov
+vocab_size:
+  desc: null
+  value: 2
+data_in_ram:
+  desc: null
+  value: false
+model:
+  desc: null
+  value: base
+use_pretrained:
+  desc: null
+  value: none
+dropout:
+  desc: null
+  value: 0
+n_head:
+  desc: null
+  value: 1
+n_layer:
+  desc: null
+  value: 1
+n_embd:
+  desc: null
+  value: 8
+sequence_length:
+  desc: null
+  value: 1024
+dtype:
+  desc: null
+  value: torch.float16
+bias:
+  desc: null
+  value: false
+no_compile:
+  desc: null
+  value: false
+wandb:
+  desc: null
+  value: false
+wandb_project:
+  desc: null
+  value: bias-test
+wandb_run_prefix:
+  desc: null
+  value: none
+eval_seq_prefix:
+  desc: null
+  value: '0'
+distributed_backend:
+  desc: null
+  value: null
+p:
+  desc: null
+  value: 0.5
+q:
+  desc: null
+  value: 0.5
+order:
+  desc: null
+  value: 1
+chain:
+  desc: null
+  value: random
+memory:
+  desc: null
+  value: -1
+initial:
+  desc: null
+  value: uniform
+init:
+  desc: null
+  value: base
+init_value:
+  desc: null
+  value: 1.0
+world_size:
+  desc: null
+  value: 1
+_wandb:
+  desc: null
+  value:
+    python_version: 3.10.0
+    cli_version: 0.17.7
+    framework: torch
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    start_time: 1724801305
+    t:
+      1:
+      - 1
+      - 55
+      2:
+      - 1
+      - 55
+      3:
+      - 13
+      - 16
+      - 23
+      4: 3.10.0
+      5: 0.17.7
+      8:
+      - 5
+      13: linux-x86_64

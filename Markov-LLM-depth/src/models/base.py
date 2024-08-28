@@ -61,9 +61,33 @@ class CausalSelfAttention(nn.Module):
         self.config = config
         self.iter = 1
 
+    def get_qkv(self):
+        q, k, v = self.c_attn.weight.T.split(self.n_embd, dim=1)
+        return q, k, v
+
+    def log_energy_and_weights(self, weight, wandb_name: str, iter: int) -> None:
+        weight = weight.detach().clone()
+        sv = torch.linalg.svdvals(weight)
+        energy1 = sv[0]**2 / torch.sum(sv**2)
+        energy2 = torch.sum(sv[:2]**2) / torch.sum(sv**2)
+        energy3 = torch.sum(sv[:3]**2) / torch.sum(sv**2)
+        energy4 = torch.sum(sv[:4]**2) / torch.sum(sv**2)
+        energy5 = torch.sum(sv[:5]**2) / torch.sum(sv**2)
+        if self.wandb:
+            wandb.log({
+                f"{wandb_name}-energy1": energy1.item(),
+                f"{wandb_name}-energy2": energy2.item(),
+                f"{wandb_name}-energy3": energy3.item(),
+                f"{wandb_name}-energy4": energy4.item(),
+                f"{wandb_name}-energy5": energy5.item(),
+            })
+            wandb.log({f"{wandb_name}-sv": wandb.Histogram(sv.cpu().numpy())})
+            wandb.log({f"{wandb_name}-iter{self.iter}-weight": wandb.Image(weight.cpu().numpy())})
+            
+
     def forward(self, x, get_att=False):
         B, T, C = x.size() # batch size, sequence length, embedding dimensionality (n_embd)
-
+        print("id" + str(self.id) + " x:")
         if self.iter == self.iterations + np.floor(self.iterations/self.config.eval_freq):
             print("id" + str(self.id) + " W_Q W_K W_V:")
             print(self.c_attn.weight.cpu().detach().type(torch.float).numpy())
@@ -72,6 +96,22 @@ class CausalSelfAttention(nn.Module):
             plt.imshow(fig_qkv.numpy(), cmap='gray', interpolation='nearest')
             if self.wandb:
                 wandb.log({"id" + str(self.id) + "-att-qkv-"+str(self.iter): plt})
+        
+        if (self.iter == 1) or (self.iter % 100 == 0):
+            q, k, v = self.get_qkv()
+            self.log_energy_and_weights(q, f"q-id{self.id}", self.iter)
+            self.log_energy_and_weights(k, f"k-id{self.id}", self.iter)
+            self.log_energy_and_weights(v, f"v-id{self.id}", self.iter)
+            
+            proj_weight = self.c_proj.weight.T.detach().clone()
+            self.log_energy_and_weights(proj_weight, f"proj-id{self.id}", self.iter)
+            
+            if self.c_proj.bias is not None:
+                proj_bias = self.c_proj.bias.detach().clone()
+                if self.wandb:
+                    wandb.log({f"proj-id{self.id}-bias": proj_bias.cpu().numpy()})
+                    wandb.save(f"proj-id{self.id}-bias.pt.npy", proj_bias.cpu().numpy(force=True))
+            
         
         # calculate query, key, values for all heads in batch and move head forward to be the batch dim
         q, k ,v  = self.c_attn(x).split(self.n_embd, dim=2)

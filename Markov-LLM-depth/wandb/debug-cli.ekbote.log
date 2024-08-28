@@ -1,0 +1,68 @@
+2024-08-27 23:24:27 INFO Running runs: []
+2024-08-27 23:24:27 INFO Agent received command: run
+2024-08-27 23:24:27 INFO Agent starting run with config:
+	batch_size: 16
+	chain: random
+	iterations: 10000
+	n_embd: 16
+	n_head: 1
+	n_layer: 2
+	order: 1
+	repeat: 1
+	sequence_length: 128
+2024-08-27 23:24:27 INFO About to run command: python main.py --batch_size=16 --chain=random --iterations=10000 --n_embd=16 --n_head=1 --n_layer=2 --order=1 --repeat=1 --sequence_length=128
+2024-08-27 23:24:32 INFO Running runs: ['6vs8izg7']
+2024-08-27 23:24:32 INFO Cleaning up finished run: 6vs8izg7
+2024-08-27 23:24:33 INFO Agent received command: run
+2024-08-27 23:24:33 INFO Agent starting run with config:
+	batch_size: 16
+	chain: random
+	iterations: 10000
+	n_embd: 16
+	n_head: 1
+	n_layer: 2
+	order: 1
+	repeat: 2
+	sequence_length: 128
+2024-08-27 23:24:33 INFO About to run command: python main.py --batch_size=16 --chain=random --iterations=10000 --n_embd=16 --n_head=1 --n_layer=2 --order=1 --repeat=2 --sequence_length=128
+2024-08-27 23:25:09 INFO Running runs: []
+2024-08-27 23:25:09 INFO Agent received command: run
+2024-08-27 23:25:09 INFO Agent starting run with config:
+	batch_size: 16
+	chain: random
+	iterations: 10000
+	n_embd: 16
+	n_head: 1
+	n_layer: 2
+	order: 1
+	repeat: 1
+	sequence_length: 128
+2024-08-27 23:25:09 INFO About to run command: python src/main.py --batch_size=16 --chain=random --iterations=10000 --n_embd=16 --n_head=1 --n_layer=2 --order=1 --repeat=1 --sequence_length=128
+2024-08-27 23:25:14 INFO Running runs: ['uapwtw7t']
+2024-08-27 23:25:14 INFO Cleaning up finished run: uapwtw7t
+2024-08-27 23:25:14 INFO Agent received command: run
+2024-08-27 23:25:14 INFO Agent starting run with config:
+	batch_size: 16
+	chain: random
+	iterations: 10000
+	n_embd: 16
+	n_head: 1
+	n_layer: 2
+	order: 1
+	repeat: 2
+	sequence_length: 128
+2024-08-27 23:25:14 INFO About to run command: python src/main.py --batch_size=16 --chain=random --iterations=10000 --n_embd=16 --n_head=1 --n_layer=2 --order=1 --repeat=2 --sequence_length=128
+2024-08-27 23:25:57 INFO Running runs: []
+2024-08-27 23:25:57 INFO Agent received command: run
+2024-08-27 23:25:57 INFO Agent starting run with config:
+	batch_size: 16
+	chain: random
+	iterations: 10000
+	n_embd: 16
+	n_head: 1
+	n_layer: 2
+	order: 1
+	seed: 1
+	sequence_length: 128
+2024-08-27 23:25:57 INFO About to run command: python src/main.py --batch_size=16 --chain=random --iterations=10000 --n_embd=16 --n_head=1 --n_layer=2 --order=1 --seed=1 --sequence_length=128
+2024-08-27 23:26:02 INFO Running runs: ['gkbuswb3']

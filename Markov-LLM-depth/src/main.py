@@ -105,9 +105,11 @@ def main(args):
 
     args.world_size = distributed_backend.get_world_size()
     exp_name = get_exp_name(args)
+    params_copy = copy.deepcopy(vars(args))
     if distributed_backend.is_master_process() and args.wandb:
-        params_copy = copy.deepcopy(vars(args))
         del params_copy['device']
+        wandb.init(project=args.wandb_project, name=exp_name, config=params_copy)
+    else:
         wandb.init(project=args.wandb_project, name=exp_name, config=params_copy)
     
     ckpt_path = os.path.join(args.results_base_folder, args.dataset, args.model, exp_name)

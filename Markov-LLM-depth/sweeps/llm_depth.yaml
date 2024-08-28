@@ -1,0 +1,28 @@
+name: "markov_llm_depth_heads"
+method: grid
+project: "markov-LLM-depth-heads-test"
+parameters:
+  chain:
+    values: ["random"]
+  order:
+    values: [1, 2, 3, 4, 5]
+  n_layer:
+    values: [2, 3]
+  n_head:
+    values: [1]
+  n_embd:
+    values: [16, 32, 48, 64, 96, 128]
+  batch_size:
+    values: [16]
+  sequence_length:
+    values: [128]
+  iterations:
+    values: [10000]
+  seed:
+    values: [1, 2, 3]  # Corresponds to the `j` loop in the original script
+    
+
+command:
+  - python
+  - src/main.py
+  - ${args}

@@ -1,0 +1,68 @@
+Training model=base
+{'config_format': 'markov', 'batch_size': 16, 'acc_steps': 1, 'seed': 0, 'device': device(type='cuda', index=0), 'iterations': 1000, 'lr': 0.002, 'warmup_percent': 0.02, 'weight_decay': 0.001, 'beta1': 0.9, 'beta2': 0.95, 'scheduler': 'cos', 'opt': 'adamw', 'eval_freq': 1, 'results_base_folder': './exps', 'grad_clip': 0.0, 'dataset': 'markov', 'vocab_size': 2, 'data_in_ram': False, 'model': 'base', 'use_pretrained': 'none', 'dropout': 0, 'n_head': 1, 'n_layer': 1, 'n_embd': 8, 'sequence_length': 1024, 'dtype': torch.float16, 'bias': False, 'no_compile': False, 'wandb': False, 'wandb_project': 'bias-test', 'wandb_run_prefix': 'none', 'eval_seq_prefix': '0', 'distributed_backend': None, 'p': 0.5, 'q': 0.5, 'order': 1, 'chain': 'random', 'memory': -1, 'initial': 'uniform', 'init': 'base', 'init_value': 1.0, 'world_size': 1}
+9002
+Markov transition matrix:
+tensor([[0.7268, 0.2732],
+        [0.7731, 0.2269]], device='cuda:0')
+1 [train] loss=0.689 [val] loss=0.689, pp=1.99, acc=0.598126 [time per itr] 1429.88ms [lr] 0.00003
+2 [train] loss=0.689 [val] loss=0.689, pp=1.99, acc=0.601447 [time per itr] 251.44ms [lr] 0.00007
+3 [train] loss=0.688 [val] loss=0.688, pp=1.99, acc=0.606897 [time per itr] 247.36ms [lr] 0.00014
+4 [train] loss=0.688 [val] loss=0.688, pp=1.99, acc=0.617334 [time per itr] 248.87ms [lr] 0.00023
+5 [train] loss=0.687 [val] loss=0.687, pp=1.99, acc=0.626154 [time per itr] 251.86ms [lr] 0.00034
+6 [train] loss=0.687 [val] loss=0.685, pp=1.98, acc=0.642743 [time per itr] 249.38ms [lr] 0.00047
+7 [train] loss=0.685 [val] loss=0.683, pp=1.98, acc=0.659967 [time per itr] 246.71ms [lr] 0.00061
+8 [train] loss=0.683 [val] loss=0.680, pp=1.97, acc=0.674854 [time per itr] 252.45ms [lr] 0.00077
+9 [train] loss=0.680 [val] loss=0.677, pp=1.97, acc=0.688824 [time per itr] 246.96ms [lr] 0.00093
+10 [train] loss=0.677 [val] loss=0.673, pp=1.96, acc=0.703912 [time per itr] 249.78ms [lr] 0.00109
+11 [train] loss=0.673 [val] loss=0.669, pp=1.95, acc=0.715131 [time per itr] 250.01ms [lr] 0.00125
+12 [train] loss=0.669 [val] loss=0.664, pp=1.94, acc=0.720349 [time per itr] 272.01ms [lr] 0.00141
+13 [train] loss=0.664 [val] loss=0.659, pp=1.93, acc=0.728540 [time per itr] 247.04ms [lr] 0.00155
+14 [train] loss=0.659 [val] loss=0.653, pp=1.92, acc=0.730994 [time per itr] 251.43ms [lr] 0.00168
+15 [train] loss=0.653 [val] loss=0.647, pp=1.91, acc=0.734991 [time per itr] 249.18ms [lr] 0.00179
+16 [train] loss=0.647 [val] loss=0.641, pp=1.90, acc=0.734399 [time per itr] 249.35ms [lr] 0.00188
+17 [train] loss=0.641 [val] loss=0.635, pp=1.89, acc=0.738226 [time per itr] 249.05ms [lr] 0.00195
+18 [train] loss=0.635 [val] loss=0.629, pp=1.88, acc=0.737976 [time per itr] 249.07ms [lr] 0.00199
+19 [train] loss=0.629 [val] loss=0.624, pp=1.87, acc=0.738001 [time per itr] 248.61ms [lr] 0.00200
+20 [train] loss=0.623 [val] loss=0.618, pp=1.86, acc=0.738824 [time per itr] 251.70ms [lr] 0.00200
+21 [train] loss=0.618 [val] loss=0.613, pp=1.85, acc=0.738330 [time per itr] 249.98ms [lr] 0.00200
+22 [train] loss=0.611 [val] loss=0.608, pp=1.84, acc=0.739246 [time per itr] 257.77ms [lr] 0.00200
+23 [train] loss=0.609 [val] loss=0.603, pp=1.83, acc=0.741736 [time per itr] 260.11ms [lr] 0.00200
+24 [train] loss=0.604 [val] loss=0.600, pp=1.82, acc=0.739233 [time per itr] 252.26ms [lr] 0.00200
+25 [train] loss=0.600 [val] loss=0.597, pp=1.82, acc=0.738684 [time per itr] 247.06ms [lr] 0.00200
+26 [train] loss=0.598 [val] loss=0.593, pp=1.81, acc=0.739917 [time per itr] 249.53ms [lr] 0.00200
+27 [train] loss=0.592 [val] loss=0.589, pp=1.80, acc=0.740558 [time per itr] 253.77ms [lr] 0.00200
+28 [train] loss=0.591 [val] loss=0.589, pp=1.80, acc=0.736865 [time per itr] 246.33ms [lr] 0.00200
+29 [train] loss=0.589 [val] loss=0.586, pp=1.80, acc=0.737854 [time per itr] 246.36ms [lr] 0.00200
+30 [train] loss=0.585 [val] loss=0.583, pp=1.79, acc=0.739404 [time per itr] 251.52ms [lr] 0.00200
+31 [train] loss=0.582 [val] loss=0.581, pp=1.79, acc=0.739490 [time per itr] 246.01ms [lr] 0.00200
+32 [train] loss=0.581 [val] loss=0.579, pp=1.78, acc=0.740100 [time per itr] 247.91ms [lr] 0.00200
+33 [train] loss=0.578 [val] loss=0.578, pp=1.78, acc=0.740045 [time per itr] 258.08ms [lr] 0.00200
+34 [train] loss=0.578 [val] loss=0.578, pp=1.78, acc=0.738806 [time per itr] 253.54ms [lr] 0.00200
+35 [train] loss=0.580 [val] loss=0.574, pp=1.78, acc=0.741382 [time per itr] 246.31ms [lr] 0.00200
+36 [train] loss=0.578 [val] loss=0.575, pp=1.78, acc=0.739624 [time per itr] 248.95ms [lr] 0.00200
+37 [train] loss=0.570 [val] loss=0.574, pp=1.77, acc=0.740350 [time per itr] 246.96ms [lr] 0.00200
+38 [train] loss=0.582 [val] loss=0.574, pp=1.78, acc=0.739453 [time per itr] 246.78ms [lr] 0.00200
+39 [train] loss=0.571 [val] loss=0.572, pp=1.77, acc=0.740894 [time per itr] 249.22ms [lr] 0.00200
+40 [train] loss=0.577 [val] loss=0.572, pp=1.77, acc=0.740729 [time per itr] 250.53ms [lr] 0.00200
+41 [train] loss=0.575 [val] loss=0.573, pp=1.77, acc=0.740118 [time per itr] 250.39ms [lr] 0.00200
+42 [train] loss=0.574 [val] loss=0.575, pp=1.78, acc=0.738092 [time per itr] 253.60ms [lr] 0.00200
+43 [train] loss=0.573 [val] loss=0.572, pp=1.77, acc=0.741406 [time per itr] 250.98ms [lr] 0.00200
+44 [train] loss=0.576 [val] loss=0.573, pp=1.77, acc=0.740643 [time per itr] 246.96ms [lr] 0.00200
+45 [train] loss=0.582 [val] loss=0.574, pp=1.78, acc=0.739362 [time per itr] 252.78ms [lr] 0.00200
+46 [train] loss=0.568 [val] loss=0.576, pp=1.78, acc=0.738220 [time per itr] 248.73ms [lr] 0.00200
+47 [train] loss=0.576 [val] loss=0.576, pp=1.78, acc=0.738037 [time per itr] 246.20ms [lr] 0.00200
+48 [train] loss=0.568 [val] loss=0.574, pp=1.78, acc=0.739459 [time per itr] 252.55ms [lr] 0.00200
+Traceback (most recent call last):
+  File "/mlbio_scratch/ekbote/Markov/Markov-LLM-depth/src/main.py", line 151, in <module>
+    main(args)
+  File "/mlbio_scratch/ekbote/Markov/Markov-LLM-depth/src/main.py", line 133, in main
+    stats = train(model, opt, P, order, scheduler, args.iterations, args.acc_steps, args.batch_size, args.sequence_length, generator,
+  File "/mlbio_scratch/ekbote/Markov/Markov-LLM-depth/src/optim/base.py", line 55, in train_base
+    val_acc, val_loss, val_perplexity = eval(model, P, order, sequence_length, batch_size,
+  File "/home/ekbote/.conda/envs/torch-2.4/lib/python3.10/site-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+  File "/mlbio_scratch/ekbote/Markov/Markov-LLM-depth/src/optim/utils.py", line 59, in eval
+    x, y = get_batch(P, order, sequence_length, batch_size, generator, extra_args, device=device)
+  File "/mlbio_scratch/ekbote/Markov/Markov-LLM-depth/src/optim/utils.py", line 37, in get_batch
+    data[:,i] = get_next_symbols(P, order, data[:,i-order:i])
+KeyboardInterrupt

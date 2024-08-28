@@ -17,9 +17,9 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
 
     stats = {'train_loss': [], 'val_loss': [], 'val_pp': [], 'val_acc': []}
     
-    if not extra_args.no_compile:
-        print(f"Compiling model ...")
-        model = torch.compile(model) # requires pytorch 2.0+
+    # if not extra_args.no_compile:
+    #     print(f"Compiling model ...")
+    #     model = torch.compile(model) # requires pytorch 2.0+
 
     print("Markov transition matrix:")
     print(P)
