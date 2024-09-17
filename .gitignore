@@ -11,5 +11,6 @@ Markov-LLM-depth/wandb
 Markov-LLM-depth/*.npy
 Markov-LLM-depth/exps/*
 Markov-LLM-depth/src/wandb
+Markov-LLM-depth/src/exps/*
 Markov-LLM-depth/src/__pycache__
 Markov-LLM-depth/models/__pycache__

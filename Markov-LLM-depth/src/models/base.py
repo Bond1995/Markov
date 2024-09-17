@@ -9,6 +9,7 @@ https://github.com/huggingface/transformers/blob/main/src/transformers/models/gp
 
 import math
 import inspect
+import os
 
 import tiktoken
 import torch
@@ -19,6 +20,16 @@ import matplotlib.pyplot as plt
 from torch.nn import functional as F
 
 
+def normalize_data(data):
+    try:
+        # Ensure the data is a numpy array
+        data = np.array(data)
+        # Normalize between 0 and 1
+        normalized_data = (data - np.min(data)) / (np.max(data) - np.min(data))
+        return normalized_data
+    except Exception as e:
+        return 0
+    
 class LayerNorm(nn.Module):
     """ LayerNorm but with an optional bias. PyTorch doesn't support simply bias=False """
 
@@ -65,8 +76,9 @@ class CausalSelfAttention(nn.Module):
         q, k, v = self.c_attn.weight.T.split(self.n_embd, dim=1)
         return q, k, v
 
+
     def log_energy_and_weights(self, weight, wandb_name: str, iter: int) -> None:
-        weight = weight.detach().clone()
+        weight = weight.clone().detach()
         sv = torch.linalg.svdvals(weight)
         energy1 = sv[0]**2 / torch.sum(sv**2)
         energy2 = torch.sum(sv[:2]**2) / torch.sum(sv**2)
@@ -81,11 +93,38 @@ class CausalSelfAttention(nn.Module):
                 f"{wandb_name}-energy4": energy4.item(),
                 f"{wandb_name}-energy5": energy5.item(),
             })
-            wandb.log({f"{wandb_name}-sv": wandb.Histogram(sv.cpu().numpy())})
+        
+        numpy_weight = weight.cpu().numpy()    
+        self.save_weights(numpy_weight, wandb_name, iter)
+    
+    def visualize_weights(self, weight, wandb_name: str, iter: int) -> None:
+        weight = weight.detach().clone()
+        if self.wandb:
             wandb.log({f"{wandb_name}-iter{self.iter}-weight": wandb.Image(weight.cpu().numpy())})
-            
 
-    def forward(self, x, get_att=False):
+    def save_weights(self, weight, wandb_name: str, iter: int) -> None:
+        if self.wandb:
+            run_dir = wandb.run.dir
+            weight_folder_path = f"{run_dir}/{wandb_name}/weights"
+            os.makedirs(weight_folder_path, exist_ok=True)
+            np.save(f"{weight_folder_path}/{wandb_name}-iter{self.iter}.npy", weight)
+
+    def save_images(self, weight, wandb_name: str, iter: int) -> None:
+        if self.wandb:
+            run_dir = wandb.run.dir
+            weight_images_path = f"{run_dir}/{wandb_name}/images"
+            os.makedirs(weight_images_path, exist_ok=True)
+            plt.figure()
+            heatmap = plt.imshow(weight, cmap='viridis', interpolation='nearest')
+            plt.colorbar(heatmap)
+            plt.savefig(f"{weight_images_path}/{wandb_name}-iter{self.iter}.png")
+            plt.close()
+            
+            if self.wandb:
+                wandb.log({f"{wandb_name}/{wandb_name}-iter{self.iter}": wandb.Image(f"{weight_images_path}/{wandb_name}-iter{self.iter}.png")})
+ 
+    
+    def forward(self, x, get_att=True):
         B, T, C = x.size() # batch size, sequence length, embedding dimensionality (n_embd)
         if self.iter == self.iterations + np.floor(self.iterations/self.config.eval_freq):
             print("id" + str(self.id) + " W_Q W_K W_V:")
@@ -138,19 +177,27 @@ class CausalSelfAttention(nn.Module):
             y = att @ v # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
         y = y.transpose(1, 2).contiguous().view(B, T, C) # re-assemble all head outputs side by side
 
+        get_att = True
         if get_att:
             att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
             att = att.masked_fill(torch.tril(torch.ones(T, T, device=self.device)).view(1, 1, T, T) == 0, float('-inf'))
             att = F.softmax(att, dim=-1)
             att_mean = att
             att_std = att.std(dim=0)
+            
+            att_filtered = att.clone().detach()
+            att_filtered = att_filtered[0, 0, 0:64, 0:64].cpu().numpy()
+            
+            if self.iter == 1 or self.iter % 100 == 0:
+                self.save_weights(att_filtered, "att-id" + str(self.id), self.iter)
+                self.save_images(att_filtered, "att-id" + str(self.id), self.iter)
 
-            np.save('att_mean_'+str(self.id)+'.pt', att_mean.numpy(force=True))
-            if self.wandb:
-                wandb.save('att_mean_'+str(self.id)+'.pt.npy')
-            np.save('att_std_'+str(self.id)+'.pt', att_std.numpy(force=True))
-            if self.wandb:
-                wandb.save('att_std_'+str(self.id)+'.pt.npy')
+            # np.save('att_mean_'+str(self.id)+'.pt', att_mean.numpy(force=True))
+            # if self.wandb:
+            #     wandb.save('att_mean_'+str(self.id)+'.pt.npy')
+            # np.save('att_std_'+str(self.id)+'.pt', att_std.numpy(force=True))
+            # if self.wandb:
+            #     wandb.save('att_std_'+str(self.id)+'.pt.npy')
         else:
             att_mean = None
             att_std = None
@@ -257,6 +304,31 @@ class GPTBase(nn.Module):
         # report number of parameters
         print("number of parameters: %.2fM" % (self.get_num_params()/1e6,))
 
+    def save_weights(self, weight, wandb_name: str, iter: int) -> None:
+        if self.wandb:
+            run_dir = wandb.run.dir
+            weight_folder_path = f"{run_dir}/{wandb_name}/weights"
+            os.makedirs(weight_folder_path, exist_ok=True)
+            np.save(f"{weight_folder_path}/{wandb_name}-iter{self.iter}.npy", weight)
+
+    def save_images(self, weight, wandb_name: str, iter: int) -> None:
+        if self.wandb:
+            run_dir = wandb.run.dir
+            weight_images_path = f"{run_dir}/{wandb_name}/images"
+            os.makedirs(weight_images_path, exist_ok=True)
+            plt.figure()
+            heatmap=plt.imshow(weight, cmap='viridis', interpolation='nearest')
+            plt.colorbar(heatmap)
+            plt.savefig(f"{weight_images_path}/{wandb_name}-iter{self.iter}.png")
+            plt.close()
+            
+            if self.wandb:
+                wandb.log({f"{wandb_name}/{wandb_name}-iter{self.iter}": wandb.Image(f"{weight_images_path}/{wandb_name}-iter{self.iter}.png")})
+
+    def plot_images_on_wandb(self, weight, wandb_name: str, iter: int) -> None:
+        if self.wandb:
+            wandb.log({f"{wandb_name}-iter{self.iter}-weight": plt.imshow(weight, cmap='viridis', interpolation='nearest')}) 
+
     def get_num_params(self, non_embedding=True):
         """
         Return the number of parameters in the model.
@@ -278,6 +350,7 @@ class GPTBase(nn.Module):
             torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
 
     def forward(self, idx, targets=None, get_logits=False, get_att=False):
+        run_dir = wandb.run.dir
         device = idx.device
         b, t = idx.size()
         if self.iter == self.iterations + np.floor(self.iterations/self.config.eval_freq):
@@ -289,6 +362,23 @@ class GPTBase(nn.Module):
         # forward the GPT model itself
         tok_emb = self.transformer.wte(idx) # token embeddings of shape (b, t, n_embd)
         pos_emb = self.transformer.wpe(pos) # position embeddings of shape (1, t, n_embd)
+        
+        # save tok_emb as a heatmap
+        if self.iter == 1 or self.iter % 100 == 0:
+            copied_token_embedding_weights = self.transformer.wte.weight.clone().detach().cpu().numpy()
+            # self.plot_images_on_wandb(copied_token_embedding_weights, "token_embeddings/tok_emb", self.iter)
+            copied_token_embedding_weights = normalize_data(copied_token_embedding_weights)
+            self.save_images(copied_token_embedding_weights, "token_embeddings", self.iter)
+            self.save_weights(copied_token_embedding_weights, "token_embeddings", self.iter)
+                        
+            copied_positional_embedding_weights = self.transformer.wpe.weight.clone().detach().cpu().numpy()
+            wandb.log({f"positional_embeddings/pos_emb-iter{self.iter}": plt.imshow(copied_positional_embedding_weights,
+                                                                                    cmap='viridis', interpolation='nearest')})
+            # self.plot_images_on_wandb(copied_positional_embedding_weights, "positional_embeddings/pos_emb", self.iter)
+            copied_positional_embedding_weights = normalize_data(copied_positional_embedding_weights)
+            self.save_images(copied_positional_embedding_weights, "positional_embeddings", self.iter)
+            self.save_weights(copied_positional_embedding_weights, "positional_embeddings", self.iter)
+        
         if self.iter == self.iterations + np.floor(self.iterations/self.config.eval_freq):
             print("wte:")
             print(self.transformer.wte.weight)
