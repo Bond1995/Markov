@@ -6,12 +6,12 @@ __pycache__/
 *.py[cod]
 
 # WandB directories
-wandb/
-Markov-LLM-depth/wandb
+wandb/*
+Markov-LLM-depth/wandb/*
 Markov-LLM-depth/*.npy
 Markov-LLM-depth/exps/*
 Markov-LLM-depth/src/wandb
 Markov-LLM-depth/src/exps/*
 Markov-LLM-depth/src/__pycache__
 Markov-LLM-depth/models/__pycache__
-Markov-LLM-depth/wandb
+analyze_wandb/optimal/*
