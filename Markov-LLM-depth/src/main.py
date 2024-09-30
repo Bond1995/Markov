@@ -42,16 +42,27 @@ def main(args):
     generator.seed()
 
     # Markov transition probabilities (binary alphabet)
-    if args.chain == 'switch':
-        p = args.p # 0... -> 1
-        q = args.q # 1... -> 0
-        P = torch.Tensor([[1-p, p],[q, 1-q]]).to(args.device)
-    else:
-        P = torch.zeros(2**order, 2).to(args.device)
+    P = None
+    if args.chain == "switch":
+        if order == 1:
+            p = args.p # 0... -> 1
+            q = args.q # 1... -> 0
+            P = torch.Tensor([[1-p, p],[q, 1-q]]).to(args.dtype).to(args.device)
+        else:
+            P = torch.zeros(2**order, 2, dtype=args.dtype, device=args.device)
+            for k in range(2**order):
+                pk = torch.rand(1, generator=generator, dtype=args.dtype, device=args.device)
+                P[k,:] = torch.Tensor([1-pk, pk])
+    elif args.chain == "random-fixed":
+        P = torch.zeros(2**order, 2, dtype=args.dtype, device=args.device)
         for k in range(2**order):
-            pk = torch.rand(1, generator=generator, device=args.device)
+            pk = torch.rand(1, generator=generator, dtype=args.dtype, device=args.device)
             P[k,:] = torch.Tensor([1-pk, pk])
+    else:
+        P = None
 
+    P = None
+    
     torch.backends.cuda.matmul.allow_tf32 = True # allows us to make sure we're able to use tensorfloat32 during training
     torch.backends.cudnn.allow_tf32 = True
 
@@ -130,19 +141,17 @@ def main(args):
     print(f"\nTraining model={args.model} \n{vars(args)}\n")
     print(sum(p.numel() for p in model.parameters() if p.requires_grad))
 
-    stats = train(model, opt, P, order, scheduler, args.iterations, args.acc_steps, args.batch_size, args.sequence_length, generator,
-                  eval_freq=args.eval_freq, 
-                  distributed_backend=distributed_backend,
-                  ckpt_path=f"{ckpt_path}/ckpt.pt", extra_args=args)
+    train(model, opt, P, order, scheduler, args.iterations, args.acc_steps, args.batch_size, args.sequence_length, generator,
+                  eval_freq=args.eval_freq, ckpt_path=f"{ckpt_path}/ckpt.pt", extra_args=args)
     
-    torch.save(model.state_dict(), 'model.pt')
+    # torch.save(model.state_dict(), 'model.pt')
 
-    args.device = None
-    args.dtype = None
-    stats['args'] = vars(args)
-    if distributed_backend.is_master_process():
-        with open(f"{ckpt_path}/summary.json", "w") as fs:
-            json.dump(stats, fs)
+    # args.device = None
+    # args.dtype = None
+    # stats['args'] = vars(args)
+    # if distributed_backend.is_master_process():
+    #     with open(f"{ckpt_path}/summary.json", "w") as fs:
+    #         json.dump(stats, fs)
     distributed_backend.finalize()
 
 

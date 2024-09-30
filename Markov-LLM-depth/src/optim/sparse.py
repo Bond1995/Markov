@@ -5,7 +5,7 @@ import wandb
 import time 
 import copy
 
-from .utils import eval_sparse, get_batch, eval_sweep_dropk, save_checkpoint
+from .utils import get_batch, save_checkpoint
 
 
 def train_sparse(model, opt, data, scheduler, iterations, acc_steps, batch_size, sequence_length, eval_freq, ckpt_path, distributed_backend, extra_args):

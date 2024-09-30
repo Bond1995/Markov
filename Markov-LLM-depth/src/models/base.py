@@ -20,6 +20,9 @@ import matplotlib.pyplot as plt
 from torch.nn import functional as F
 
 
+
+
+
 def normalize_data(data):
     try:
         # Ensure the data is a numpy array
@@ -71,6 +74,7 @@ class CausalSelfAttention(nn.Module):
         self.wandb = config.wandb
         self.config = config
         self.iter = 1
+        self.eval_freq = config.eval_freq
 
     def get_qkv(self):
         q, k, v = self.c_attn.weight.T.split(self.n_embd, dim=1)
@@ -102,17 +106,27 @@ class CausalSelfAttention(nn.Module):
         if self.wandb:
             wandb.log({f"{wandb_name}-iter{self.iter}-weight": wandb.Image(weight.cpu().numpy())})
 
-    def save_weights(self, weight, wandb_name: str, iter: int) -> None:
+    def save_weights(self, weight, wandb_name: str, iter: int, folder_name=False, save_folder=False) -> None:
         if self.wandb:
             run_dir = wandb.run.dir
-            weight_folder_path = f"{run_dir}/{wandb_name}/weights"
+            if save_folder and folder_name is not None:
+                weight_folder_path = f"{run_dir}/{folder_name}/{wandb_name}/weights"
+            else:
+                weight_folder_path = f"{run_dir}/{wandb_name}/weights"
             os.makedirs(weight_folder_path, exist_ok=True)
             np.save(f"{weight_folder_path}/{wandb_name}-iter{self.iter}.npy", weight)
 
-    def save_images(self, weight, wandb_name: str, iter: int) -> None:
+    def save_images(self, weight, wandb_name: str, iter: int, folder_name=False, save_folder=False) -> None:
         if self.wandb:
             run_dir = wandb.run.dir
-            weight_images_path = f"{run_dir}/{wandb_name}/images"
+            if save_folder and folder_name is not None:
+                weight_images_path = f"{run_dir}/{folder_name}/{wandb_name}/images"
+                try:
+                    wandb.log({f"{folder_name}/{wandb_name}-iter{self.iter}-weight": plt.imshow(weight, cmap='viridis', interpolation='nearest')})
+                except Exception as e:
+                    print(f"Error: {e}")
+            else:
+                weight_images_path = f"{run_dir}/{wandb_name}/images"
             os.makedirs(weight_images_path, exist_ok=True)
             plt.figure()
             heatmap = plt.imshow(weight, cmap='viridis', interpolation='nearest')
@@ -124,18 +138,10 @@ class CausalSelfAttention(nn.Module):
                 wandb.log({f"{wandb_name}/{wandb_name}-iter{self.iter}": wandb.Image(f"{weight_images_path}/{wandb_name}-iter{self.iter}.png")})
  
     
-    def forward(self, x, get_att=True):
+    def forward(self, x, get_att=True, folder_name=None, save_forward=False):
         B, T, C = x.size() # batch size, sequence length, embedding dimensionality (n_embd)
-        if self.iter == self.iterations + np.floor(self.iterations/self.config.eval_freq):
-            print("id" + str(self.id) + " W_Q W_K W_V:")
-            print(self.c_attn.weight.cpu().detach().type(torch.float).numpy())
-            fig_qkv = self.c_attn.weight.cpu().detach().type(torch.float)
-            fig_qkv = (fig_qkv - fig_qkv.min()) / (fig_qkv.max()-fig_qkv.min())
-            plt.imshow(fig_qkv.numpy(), cmap='gray', interpolation='nearest')
-            if self.wandb:
-                wandb.log({"id" + str(self.id) + "-att-qkv-"+str(self.iter): plt})
         
-        if (self.iter == 1) or (self.iter % 100 == 0):
+        if (self.iter == 1) or (self.iter % self.eval_freq == 0):
             q, k, v = self.get_qkv()
             self.log_energy_and_weights(q, f"q-id{self.id}", self.iter)
             self.log_energy_and_weights(k, f"k-id{self.id}", self.iter)
@@ -185,12 +191,13 @@ class CausalSelfAttention(nn.Module):
             att_mean = att
             att_std = att.std(dim=0)
             
-            att_filtered = att.clone().detach()
-            att_filtered = att_filtered[0, 0, 0:64, 0:64].cpu().numpy()
+            att_filtered = att.clone().detach().cpu().numpy()
             
-            if self.iter == 1 or self.iter % 100 == 0:
-                self.save_weights(att_filtered, "att-id" + str(self.id), self.iter)
-                self.save_images(att_filtered, "att-id" + str(self.id), self.iter)
+            if self.iter == 1 or self.iter % self.eval_freq == 0 or save_forward==True:
+                self.save_weights(att_filtered, "att-id" + str(self.id), self.iter, folder_name, save_forward)
+                self.save_images(att_filtered[0, 0, 0:64, 0:64], "att-filtered-id" + str(self.id), self.iter, folder_name, save_forward)
+                if save_forward == True or self.iter % (10 * self.eval_freq) == 0:
+                    self.save_images(att_filtered[0, 0, :, :], "att-id" + str(self.id), self.iter, folder_name, save_forward)
 
             # np.save('att_mean_'+str(self.id)+'.pt', att_mean.numpy(force=True))
             # if self.wandb:
@@ -208,7 +215,6 @@ class CausalSelfAttention(nn.Module):
             print("id" + str(self.id) + "_att_proj:")
             print(self.c_proj.weight)
         
-        self.iter += 1
 
         return y, att_mean, att_std
 
@@ -222,22 +228,38 @@ class MLP(nn.Module):
         self.dropout = nn.Dropout(config.dropout)
         self.activation = nn.GELU()
         self.id = id
+        self.wandb = config.wandb
         self.iterations = config.iterations
         self.config = config
         self.iter = 1
+        self.eval_freq = config.eval_freq
+        
+        
 
-    def forward(self, x):
+    def save_weights(self, weight, wandb_name: str, iter: int, folder_name, save_forward) -> None:
+        if self.wandb:
+            run_dir = wandb.run.dir
+            if save_forward and folder_name is not None:
+                weight_folder_path = f"{run_dir}/{folder_name}/{wandb_name}/weights"
+            else:
+                weight_folder_path = f"{run_dir}/{wandb_name}/weights"
+            
+            os.makedirs(weight_folder_path, exist_ok=True)
+            np.save(f"{weight_folder_path}/{wandb_name}-iter{self.iter}.npy", weight)
+
+
+    def forward(self, x, folder_name=None, save_forward=False):
+        weights_layer1 = self.c_fc.weight.clone().detach().cpu().numpy()
+        weights_layer2 = self.c_proj.weight.clone().detach().cpu().numpy()
+        if self.iter == 1 or self.iter % self.eval_freq == 0 or save_forward == True:
+            self.save_weights(weights_layer1, "mlp-c_fc-id" +str(self.id), self.iter, folder_name=folder_name, save_forward=save_forward)
+            self.save_weights(weights_layer2, "mlp-c_proj-id" + str(self.id), self.iter, folder_name=folder_name, save_forward=save_forward)
         x = self.c_fc(x)
         x = self.activation(x)
         x = self.c_proj(x)
         x = self.dropout(x)
-        if self.iter == self.iterations + np.floor(self.iterations/self.config.eval_freq):
-            print("id" + str(self.id) + "_c_fc:")
-            print(self.c_fc.weight)
-            print("id" + str(self.id) + "_c_proj:")
-            print(self.c_proj.weight)
         
-        self.iter += 1
+        # self.iter += 1
 
         return x
 
@@ -251,10 +273,10 @@ class Block(nn.Module):
         self.ln_2 = LayerNorm(config.n_embd, bias=config.bias)
         self.mlp = MLP(id, config)
 
-    def forward(self, x, get_att=False):
-        z, att_mean, att_std = self.attn(self.ln_1(x), get_att=get_att)
+    def forward(self, x, get_att=False, folder_name=None, save_forward=False):
+        z, att_mean, att_std = self.attn(self.ln_1(x), get_att=get_att, folder_name=folder_name, save_forward=save_forward)
         x = x + z
-        x = x + self.mlp(self.ln_2(x))
+        x = x + self.mlp(self.ln_2(x), folder_name=folder_name, save_forward=save_forward)
         return x, att_mean, att_std
     
 
@@ -269,6 +291,7 @@ class GPTBase(nn.Module):
         self.wandb = config.wandb
         self.iterations = config.iterations
         self.iter = 1
+        self.eval_freq = config.eval_freq
         
         self.transformer = nn.ModuleDict(dict(
             wte = nn.Embedding(config.vocab_size, config.n_embd),
@@ -303,18 +326,34 @@ class GPTBase(nn.Module):
 
         # report number of parameters
         print("number of parameters: %.2fM" % (self.get_num_params()/1e6,))
+    
+    def update_iter(self):
+        self.iter += 1
+        for block in self.transformer.h:
+            block.attn.iter = self.iter
+            block.mlp.iter = self.iter
 
-    def save_weights(self, weight, wandb_name: str, iter: int) -> None:
+    def save_weights(self, weight, wandb_name: str, iter: int, folder_name=None, save_forward=False) -> None:
         if self.wandb:
             run_dir = wandb.run.dir
-            weight_folder_path = f"{run_dir}/{wandb_name}/weights"
+            if save_forward and folder_name is not None:
+                weight_folder_path = f"{run_dir}/{folder_name}/{wandb_name}/weights"
+            else:
+                weight_folder_path = f"{run_dir}/{wandb_name}/weights"
             os.makedirs(weight_folder_path, exist_ok=True)
             np.save(f"{weight_folder_path}/{wandb_name}-iter{self.iter}.npy", weight)
 
-    def save_images(self, weight, wandb_name: str, iter: int) -> None:
+    def save_images(self, weight, wandb_name: str, iter: int, folder_name=None, save_forward=False) -> None:
         if self.wandb:
             run_dir = wandb.run.dir
-            weight_images_path = f"{run_dir}/{wandb_name}/images"
+            if save_forward and folder_name is not None:
+                weight_images_path = f"{run_dir}/{folder_name}/{wandb_name}/images"
+                try:
+                    wandb.log({f"{folder_name}/{wandb_name}-iter{self.iter}-weight": plt.imshow(weight, cmap='viridis', interpolation='nearest')})
+                except Exception as e:
+                    print(f"Error: {e}")
+            else:
+                weight_images_path = f"{run_dir}/{wandb_name}/images"
             os.makedirs(weight_images_path, exist_ok=True)
             plt.figure()
             heatmap=plt.imshow(weight, cmap='viridis', interpolation='nearest')
@@ -349,7 +388,7 @@ class GPTBase(nn.Module):
         elif isinstance(module, nn.Embedding):
             torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
 
-    def forward(self, idx, targets=None, get_logits=False, get_att=False):
+    def forward(self, idx, targets=None, get_logits=False, get_att=False, folder_name=None, save_forward = False):
         run_dir = wandb.run.dir
         device = idx.device
         b, t = idx.size()
@@ -364,12 +403,12 @@ class GPTBase(nn.Module):
         pos_emb = self.transformer.wpe(pos) # position embeddings of shape (1, t, n_embd)
         
         # save tok_emb as a heatmap
-        if self.iter == 1 or self.iter % 100 == 0:
+        if self.iter == 1 or self.iter % self.eval_freq == 0 or save_forward == True:
             copied_token_embedding_weights = self.transformer.wte.weight.clone().detach().cpu().numpy()
             # self.plot_images_on_wandb(copied_token_embedding_weights, "token_embeddings/tok_emb", self.iter)
             copied_token_embedding_weights = normalize_data(copied_token_embedding_weights)
-            self.save_images(copied_token_embedding_weights, "token_embeddings", self.iter)
-            self.save_weights(copied_token_embedding_weights, "token_embeddings", self.iter)
+            self.save_images(copied_token_embedding_weights, "token_embeddings", self.iter, folder_name=folder_name, save_forward=save_forward)
+            self.save_weights(copied_token_embedding_weights, "token_embeddings", self.iter, folder_name=folder_name, save_forward=save_forward)
                         
             copied_positional_embedding_weights = self.transformer.wpe.weight.clone().detach().cpu().numpy()
             wandb.log({f"positional_embeddings/pos_emb-iter{self.iter}": plt.imshow(copied_positional_embedding_weights,
@@ -387,7 +426,7 @@ class GPTBase(nn.Module):
 
         x = self.transformer.drop(tok_emb + pos_emb)
         for block in self.transformer.h:
-            x, att_mean, att_std = block(x, get_att=get_att)
+            x, att_mean, att_std = block(x, get_att=get_att, folder_name=folder_name, save_forward=save_forward)
         x = self.transformer.ln_f(x) # (b, t, n_embd)
 
         if targets is not None:
@@ -405,7 +444,7 @@ class GPTBase(nn.Module):
         att_mean = att_mean if get_att else None
         att_std = att_std if get_att else None
 
-        self.iter += 1
+        # self.iter += 1
 
         return {'logits': logits, 'loss': loss, 'att_mean': att_mean, 'att_std': att_std}
 
