@@ -17,9 +17,23 @@ from .utils import eval, eval_probs, get_batch, get_random_P, optimal_est, save_
 metrics_list = []
 
 def save_metrics_to_json(metrics, filename="metrics.json"):
+    # Function to recursively convert Tensors to lists in the dictionary
+    def tensor_to_list(obj):
+        if isinstance(obj, torch.Tensor):
+            return obj.detach().cpu().tolist()  # Convert tensor to list
+        elif isinstance(obj, dict):
+            return {k: tensor_to_list(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [tensor_to_list(i) for i in obj]
+        else:
+            return obj
+
+    # Convert the metrics to a JSON-serializable format
+    serializable_metrics = tensor_to_list(metrics)
+
     # Save the list of metrics to a JSON file
     with open(filename, 'w') as f:
-        json.dump(metrics, f, indent=4)
+        json.dump(serializable_metrics, f, indent=4)
 
 def empirical_est(x, y, order, beta=0.5):
     assert x.size(0) == 1
@@ -69,9 +83,7 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
     print("Accumulation steps: ", acc_steps)
     print("Batch size: ", batch_size)
     print()
-    
-    iterations = 501
-    
+        
     while itr < iterations:
         for microstep_idx in range(acc_steps):  # gradient accumulation
             P=None 
