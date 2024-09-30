@@ -10,8 +10,16 @@ import copy
 import time
 import copy
 import numpy as np
+import json
 
 from .utils import eval, eval_probs, get_batch, get_random_P, optimal_est, save_checkpoint, get_batch_optimised
+
+metrics_list = []
+
+def save_metrics_to_json(metrics, filename="metrics.json"):
+    # Save the list of metrics to a JSON file
+    with open(filename, 'w') as f:
+        json.dump(metrics, f, indent=4)
 
 def empirical_est(x, y, order, beta=0.5):
     assert x.size(0) == 1
@@ -57,9 +65,16 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
     model.train()
     t0 = time.time()
 
+    print("Total iterations: ", iterations)
+    print("Accumulation steps: ", acc_steps)
+    print("Batch size: ", batch_size)
+    print()
+    
+    iterations = 501
+    
     while itr < iterations:
         for microstep_idx in range(acc_steps):  # gradient accumulation
-            P=None # for ICLR experiments
+            P=None 
             x, y = get_batch_optimised(P, order, sequence_length, batch_size, generator, extra_args)
             with type_ctx:
                 outputs = model(x, targets=y)
@@ -102,6 +117,17 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
                     "val/acc": val_acc,
                     "lr": current_lr,
                 })
+
+            metrics_list.append({
+                "iter": itr,
+                "train_loss": train_loss,
+                "val_loss": val_loss,
+                "val_perplexity": val_perplexity,
+                "val_acc": val_acc,
+                "lr": current_lr,
+                "opt_loss": opt_loss,
+                "optimal": True if (abs(val_loss-opt_loss)<0.03) else False
+            })
             
             # if itr == iterations:
             if itr == iterations or itr == 1:
@@ -140,50 +166,51 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
             model.train()
             t0 = time.time()
         model.update_iter()
-            
+    
+    save_metrics_to_json(metrics_list, filename=f"{model.ckpt_path}/metrics.json")
     
     for i in range(10):
         folder_name = f"post_training-{i}"
         wandb_run_dir = wandb.run.dir
-        wandb_dir = f"{wandb_run_dir}/{folder_name}"
-        print(f"Saving data to {wandb_dir}")
-        os.makedirs(wandb_dir, exist_ok=True)
+        ckpt_path_per_folder = f"{model.ckpt_path}/{folder_name}"
+        print(f"Saving data to {ckpt_path_per_folder}")
+        os.makedirs(ckpt_path_per_folder, exist_ok=True)
         P_test_i = get_random_P(order, generator, extra_args.device, extra_args.dtype)
         x, y = get_batch(P_test_i, order, sequence_length, 1, generator, extra_args)
         
-        np.save(f"{wandb_dir}/P_test.npy", P_test_i.cpu().numpy())
-        try:
-            artifact_name_P_test = f"{folder_name}_P_test"
-            artifact_P_test = wandb.Artifact(artifact_name_P_test, type="dataset")
-            artifact_P_test.add_file(f'{wandb_dir}/P_test.npy')
-            wandb.log({artifact_name_P_test: artifact_P_test})
-        except Exception as e:
-            print(f"Failed to log P_test image - {folder_name}, Error: {e}")
+        np.save(f"{ckpt_path_per_folder}/P_test.npy", P_test_i.cpu().numpy())
+        # try:
+        #     artifact_name_P_test = f"{folder_name}_P_test"
+        #     artifact_P_test = wandb.Artifact(artifact_name_P_test, type="dataset")
+        #     artifact_P_test.add_file(f'{ckpt_path_per_folder}/P_test.npy')
+        #     wandb.log({artifact_name_P_test: artifact_P_test})
+        # except Exception as e:
+        #     print(f"Failed to log P_test image - {folder_name}, Error: {e}")
 
         # Save x.npy
-        np.save(f"{wandb_dir}/x.npy", x.cpu().numpy())
-        try:
-            artifact_name_x = f"{folder_name}_x"
-            artifact_x = wandb.Artifact(artifact_name_x, type="dataset")
-            artifact_x.add_file(f'{wandb_dir}/x.npy')
-            wandb.log({artifact_name_x: artifact_x})
-        except Exception as e:
-            print(f"Failed to log x image - {folder_name}, Error: {e}")
+        np.save(f"{ckpt_path_per_folder}/x.npy", x.cpu().numpy())
+        # try:
+        #     artifact_name_x = f"{folder_name}_x"
+        #     artifact_x = wandb.Artifact(artifact_name_x, type="dataset")
+        #     artifact_x.add_file(f'{ckpt_path_per_folder}/x.npy')
+        #     wandb.log({artifact_name_x: artifact_x})
+        # except Exception as e:
+        #     print(f"Failed to log x image - {folder_name}, Error: {e}")
 
         
-        np.save(f"{wandb_dir}/y.npy", y.cpu().numpy())
+        np.save(f"{ckpt_path_per_folder}/y.npy", y.cpu().numpy())
         outputs = model(x, targets=y, folder_name=folder_name, save_forward=True)
         est_vec = empirical_est(x, y, order, beta=0.5)
-        torch.save(est_vec, f"{wandb_dir}/est_vec.pth")
-        try:
-            artifact_name_est_vec = f"{folder_name}_est_vec"
-            artifact_est_vec = wandb.Artifact(artifact_name_est_vec, type="dataset")
-            artifact_est_vec.add_file(f'{wandb_dir}/est_vec.pth')
-            wandb.log({artifact_name_est_vec: artifact_est_vec})
-        except Exception as e:
-            print(f"Failed to log est_vec image - {folder_name}, Error: {e}")
+        torch.save(est_vec, f"{ckpt_path_per_folder}/est_vec.pth")
+        # try:
+        #     artifact_name_est_vec = f"{folder_name}_est_vec"
+        #     artifact_est_vec = wandb.Artifact(artifact_name_est_vec, type="dataset")
+        #     artifact_est_vec.add_file(f'{ckpt_path_per_folder}/est_vec.pth')
+        #     wandb.log({artifact_name_est_vec: artifact_est_vec})
+        # except Exception as e:
+        #     print(f"Failed to log est_vec image - {folder_name}, Error: {e}")
     
-    save_path = f"{wandb_run_dir}/model.pth"
+    save_path = f"{model.ckpt_path}/model.pth"
     
     
     print(f"saving checkpoint to {save_path}")
@@ -194,13 +221,13 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
                     ckpt_path=save_path)
     
     # Save and log model file artifact
-    try:
-        artifact_name_model = "model_file"
-        artifact_model = wandb.Artifact(artifact_name_model, type="model")
-        artifact_model.add_file(f"{wandb_run_dir}/model.pth")
-        wandb.log({artifact_name_model: artifact_model})
-    except Exception as e:
-        print(f"Failed to log model file, Error: {e}")
+    # try:
+    #     artifact_name_model = "model_file"
+    #     artifact_model = wandb.Artifact(artifact_name_model, type="model")
+    #     artifact_model.add_file(f"{wandb_run_dir}/model.pth")
+    #     wandb.log({artifact_name_model: artifact_model})
+    # except Exception as e:
+    #     print(f"Failed to log model file, Error: {e}")
 
     wandb.finish()
 

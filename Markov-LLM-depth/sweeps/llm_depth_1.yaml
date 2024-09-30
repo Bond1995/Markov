@@ -23,7 +23,7 @@ parameters:
   seed:
     values: [1, 2, 3]
   device:
-    values: ["cuda:1"] 
+    values: ["cuda:4"] 
 
 command:
   - python

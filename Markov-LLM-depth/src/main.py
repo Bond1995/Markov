@@ -16,6 +16,33 @@ from optim.sparse import train_sparse
 import distributed
 
 
+def save_args_to_json(args, filename):
+    # Convert the argparse Namespace to a dictionary
+    args_dict = vars(copy.deepcopy(args))
+    
+    # Handle non-serializable objects
+    for key, value in args_dict.items():
+        if isinstance(value, torch.device):
+            args_dict[key] = str(value)  # Convert torch.device to string
+        elif isinstance(value, torch.Tensor):
+            args_dict[key] = value.tolist()  # Convert torch.Tensor to list
+        elif isinstance(value, np.ndarray):
+            args_dict[key] = value.tolist()  # Convert numpy arrays to list
+        elif isinstance(value, set):
+            args_dict[key] = list(value)  # Convert set to list
+        elif hasattr(value, '__dict__'):  # Handle custom objects by converting them to dict if possible
+            args_dict[key] = value.__dict__
+        else:
+            try:
+                json.dumps(value)  # Try to serialize the value as it is
+            except TypeError:
+                args_dict[key] = str(value)  # If not serializable, convert to string as a fallback
+    
+    # Save the dictionary to a JSON file
+    with open(filename, 'w') as f:
+        json.dump(args_dict, f, indent=4)
+
+
 def get_args():
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument('--config_format', default='markov', choices=config.registered_formats())
@@ -124,6 +151,7 @@ def main(args):
         wandb.init(project=args.wandb_project, name=exp_name, config=params_copy)
     
     ckpt_path = os.path.join(args.results_base_folder, args.dataset, args.model, exp_name)
+    ckpt_path = os.path.join(args.results_base_folder, "icl", args.model, exp_name)
     if not os.path.exists(ckpt_path):
         if distributed_backend.is_master_process():
             os.makedirs(ckpt_path)
@@ -141,6 +169,11 @@ def main(args):
     print(f"\nTraining model={args.model} \n{vars(args)}\n")
     print(sum(p.numel() for p in model.parameters() if p.requires_grad))
 
+    model.ckpt_path = ckpt_path
+    model.update_ckpt_path(model.ckpt_path)
+    
+    save_args_to_json(args, os.path.join(ckpt_path, "args.json"))
+    
     train(model, opt, P, order, scheduler, args.iterations, args.acc_steps, args.batch_size, args.sequence_length, generator,
                   eval_freq=args.eval_freq, ckpt_path=f"{ckpt_path}/ckpt.pt", extra_args=args)
     

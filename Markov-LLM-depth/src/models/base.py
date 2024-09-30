@@ -75,6 +75,7 @@ class CausalSelfAttention(nn.Module):
         self.config = config
         self.iter = 1
         self.eval_freq = config.eval_freq
+        self.ckpt_path = None
 
     def get_qkv(self):
         q, k, v = self.c_attn.weight.T.split(self.n_embd, dim=1)
@@ -110,9 +111,9 @@ class CausalSelfAttention(nn.Module):
         if self.wandb:
             run_dir = wandb.run.dir
             if save_folder and folder_name is not None:
-                weight_folder_path = f"{run_dir}/{folder_name}/{wandb_name}/weights"
+                weight_folder_path = f"{self.ckpt_path}/{folder_name}/{wandb_name}/weights"
             else:
-                weight_folder_path = f"{run_dir}/{wandb_name}/weights"
+                weight_folder_path = f"{self.ckpt_path}/{wandb_name}/weights"
             os.makedirs(weight_folder_path, exist_ok=True)
             np.save(f"{weight_folder_path}/{wandb_name}-iter{self.iter}.npy", weight)
 
@@ -120,13 +121,13 @@ class CausalSelfAttention(nn.Module):
         if self.wandb:
             run_dir = wandb.run.dir
             if save_folder and folder_name is not None:
-                weight_images_path = f"{run_dir}/{folder_name}/{wandb_name}/images"
+                weight_images_path = f"{self.ckpt_path}/{folder_name}/{wandb_name}/images"
                 try:
                     wandb.log({f"{folder_name}/{wandb_name}-iter{self.iter}-weight": plt.imshow(weight, cmap='viridis', interpolation='nearest')})
                 except Exception as e:
                     print(f"Error: {e}")
             else:
-                weight_images_path = f"{run_dir}/{wandb_name}/images"
+                weight_images_path = f"{self.ckpt_path}/{wandb_name}/images"
             os.makedirs(weight_images_path, exist_ok=True)
             plt.figure()
             heatmap = plt.imshow(weight, cmap='viridis', interpolation='nearest')
@@ -194,9 +195,10 @@ class CausalSelfAttention(nn.Module):
             att_filtered = att.clone().detach().cpu().numpy()
             
             if self.iter == 1 or self.iter % self.eval_freq == 0 or save_forward==True:
-                self.save_weights(att_filtered, "att-id" + str(self.id), self.iter, folder_name, save_forward)
                 self.save_images(att_filtered[0, 0, 0:64, 0:64], "att-filtered-id" + str(self.id), self.iter, folder_name, save_forward)
-                if save_forward == True or self.iter % (10 * self.eval_freq) == 0:
+                self.save_weights(att_filtered, "att-id" + str(self.id), self.iter, folder_name, save_forward)
+
+                if save_forward == True or self.iter % (self.eval_freq) == 0:
                     self.save_images(att_filtered[0, 0, :, :], "att-id" + str(self.id), self.iter, folder_name, save_forward)
 
             # np.save('att_mean_'+str(self.id)+'.pt', att_mean.numpy(force=True))
@@ -233,6 +235,7 @@ class MLP(nn.Module):
         self.config = config
         self.iter = 1
         self.eval_freq = config.eval_freq
+        self.ckpt_path = None
         
         
 
@@ -240,9 +243,9 @@ class MLP(nn.Module):
         if self.wandb:
             run_dir = wandb.run.dir
             if save_forward and folder_name is not None:
-                weight_folder_path = f"{run_dir}/{folder_name}/{wandb_name}/weights"
+                weight_folder_path = f"{self.ckpt_path}/{folder_name}/{wandb_name}/weights"
             else:
-                weight_folder_path = f"{run_dir}/{wandb_name}/weights"
+                weight_folder_path = f"{self.ckpt_path}/{wandb_name}/weights"
             
             os.makedirs(weight_folder_path, exist_ok=True)
             np.save(f"{weight_folder_path}/{wandb_name}-iter{self.iter}.npy", weight)
@@ -292,6 +295,7 @@ class GPTBase(nn.Module):
         self.iterations = config.iterations
         self.iter = 1
         self.eval_freq = config.eval_freq
+        self.ckpt_path = None
         
         self.transformer = nn.ModuleDict(dict(
             wte = nn.Embedding(config.vocab_size, config.n_embd),
@@ -332,14 +336,19 @@ class GPTBase(nn.Module):
         for block in self.transformer.h:
             block.attn.iter = self.iter
             block.mlp.iter = self.iter
+    
+    def update_ckpt_path(self, ckpt_path):
+        for block in self.transformer.h:
+            block.attn.ckpt_path = ckpt_path
+            block.mlp.ckpt_path = ckpt_path
 
     def save_weights(self, weight, wandb_name: str, iter: int, folder_name=None, save_forward=False) -> None:
         if self.wandb:
             run_dir = wandb.run.dir
             if save_forward and folder_name is not None:
-                weight_folder_path = f"{run_dir}/{folder_name}/{wandb_name}/weights"
+                weight_folder_path = f"{self.ckpt_path}/{folder_name}/{wandb_name}/weights"
             else:
-                weight_folder_path = f"{run_dir}/{wandb_name}/weights"
+                weight_folder_path = f"{self.ckpt_path}/{wandb_name}/weights"
             os.makedirs(weight_folder_path, exist_ok=True)
             np.save(f"{weight_folder_path}/{wandb_name}-iter{self.iter}.npy", weight)
 
@@ -347,13 +356,13 @@ class GPTBase(nn.Module):
         if self.wandb:
             run_dir = wandb.run.dir
             if save_forward and folder_name is not None:
-                weight_images_path = f"{run_dir}/{folder_name}/{wandb_name}/images"
+                weight_images_path = f"{self.ckpt_path}/{folder_name}/{wandb_name}/images"
                 try:
                     wandb.log({f"{folder_name}/{wandb_name}-iter{self.iter}-weight": plt.imshow(weight, cmap='viridis', interpolation='nearest')})
                 except Exception as e:
                     print(f"Error: {e}")
             else:
-                weight_images_path = f"{run_dir}/{wandb_name}/images"
+                weight_images_path = f"{self.ckpt_path}/{wandb_name}/images"
             os.makedirs(weight_images_path, exist_ok=True)
             plt.figure()
             heatmap=plt.imshow(weight, cmap='viridis', interpolation='nearest')
