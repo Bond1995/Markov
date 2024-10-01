@@ -47,7 +47,7 @@ def get_batch_optimised(P, order, seq_length, batch_size, generator, extra_args)
         P = get_random_P_batch(order, batch_size, generator, extra_args.device, extra_args.dtype)
         batch_indices = torch.arange(batch_size)
         
-        for i in range(order, seq_length):
+        for i in range(order, seq_length+1):
             # Extract the previous 'order' symbols for the entire batch
             prev_symbols = data[:, i-order:i]
 
@@ -55,15 +55,15 @@ def get_batch_optimised(P, order, seq_length, batch_size, generator, extra_args)
             idx = (prev_symbols @ powers).long()
 
             # Fetch next symbols from the transition matrix P for each batch in parallel
-            next_symbols = torch.multinomial(P[batch_indices, idx], 1).squeeze(1)
+            next_symbols = torch.multinomial(P[batch_indices, idx], 1, generator=generator).squeeze(1)
 
             # Update the data with the newly sampled symbols
             data[:, i] = next_symbols
     else:
-        for i in range(order, seq_length):
+        for i in range(order, seq_length+1):
             prev_symbols = data[:, i-order:i]
             idx = (prev_symbols @ powers).long()
-            next_symbols = torch.multinomial(P[idx], 1).squeeze(1)
+            next_symbols = torch.multinomial(P[idx], 1, generator=generator).squeeze(1)
             data[:, i] = next_symbols
 
     # Prepare x and y for return

@@ -128,6 +128,7 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
                     "val/perplexity": val_perplexity,
                     "val/acc": val_acc,
                     "lr": current_lr,
+                    "optimal": 1.0 if (abs(val_loss-opt_loss)<0.03) else 0.0
                 })
 
             metrics_list.append({
