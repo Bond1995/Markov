@@ -18,7 +18,7 @@ def parse_args(base_parser, args, namespace):
     parser.add_argument('--beta2', default=0.95, type=float)
     parser.add_argument('--scheduler', default='cos', choices=['linear', 'cos', 'none'])
     parser.add_argument('--opt', default='sgd', choices=['adamw', 'sgd'])
-    parser.add_argument('--eval_freq', default=10, type=int) # in iterations
+    parser.add_argument('--eval_freq', default=100, type=int) # in iterations
     parser.add_argument('--results_base_folder', default="./exps", type=str) 
     parser.add_argument('--grad_clip', default=1.0, type=float) # default value is 1.0 in NanoGPT
     # Dataset params
@@ -48,7 +48,7 @@ def parse_args(base_parser, args, namespace):
     parser.add_argument('--p', default=0.5, type=float)
     parser.add_argument('--q', default=0.5, type=float)
     parser.add_argument('--order', default=1, type=int)
-    parser.add_argument('--chain', default='random', choices=['switch', 'random'])
+    parser.add_argument('--chain', default='random', choices=['switch', 'random, icl'])
     # Memory args
     parser.add_argument('--memory', default=-1, type=int) # if negative, standard causal attention is applied
     # Starting distribution
