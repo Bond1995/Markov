@@ -1,0 +1,24 @@
+Training model=base
+{'config_format': 'markov', 'batch_size': 16, 'acc_steps': 1, 'seed': 0, 'device': device(type='cuda', index=0), 'iterations': 10000, 'lr': 0.002, 'warmup_percent': 0.02, 'weight_decay': 0.001, 'beta1': 0.9, 'beta2': 0.95, 'scheduler': 'cos', 'opt': 'sgd', 'eval_freq': 10, 'results_base_folder': './exps', 'grad_clip': 1.0, 'dataset': 'markov', 'vocab_size': 2, 'data_in_ram': False, 'model': 'base', 'use_pretrained': 'none', 'dropout': 0, 'n_head': 1, 'n_layer': 1, 'n_embd': 8, 'sequence_length': 512, 'dtype': torch.float32, 'bias': True, 'no_compile': True, 'wandb': True, 'wandb_project': 'bias-test', 'wandb_run_prefix': 'none', 'eval_seq_prefix': '0', 'distributed_backend': None, 'p': 0.5, 'q': 0.5, 'order': 1, 'chain': 'random', 'memory': -1, 'initial': 'uniform', 'init': 'base', 'init_value': 1.0, 'world_size': 1}
+5002
+P =  None
+Test Markov transition matrix:
+tensor([[0.1919, 0.8081],
+        [0.0633, 0.9367]], device='cuda:0')
+att-filtered-id0_iter1
+Divergences:
+{'kl': 0.7630785476827179, 'sym_kl': 3.8377086867403807, 'tvd': 0.5467799466860015}
+10 [train] loss=0.695 [val] loss=0.642, pp=1.90, acc=0.860388 [time per itr] 5556.07ms [lr] 0.00003
+Divergences:
+{'kl': 0.5602612591590411, 'sym_kl': 1.9301226050326439, 'tvd': 0.481926616281271}
+20 [train] loss=0.658 [val] loss=0.639, pp=1.89, acc=0.869202 [time per itr] 5516.38ms [lr] 0.00007
+Traceback (most recent call last):
+  File "/mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/main.py", line 193, in <module>
+    main(args)
+  File "/mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/main.py", line 175, in main
+    stats = train(model, opt, P, order, scheduler, args.iterations, args.acc_steps, args.batch_size, args.sequence_length, generator,
+  File "/mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/optim/base.py", line 96, in train_base
+    x, y, P_batch = get_batch(None, order, sequence_length, batch_size, generator, dist, extra_args, return_P=True)
+  File "/mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/optim/utils.py", line 80, in get_batch
+    next_symbols = torch.multinomial(
+KeyboardInterrupt

@@ -21,8 +21,6 @@ from torch.nn import functional as F
 
 
 
-
-
 def normalize_data(data):
     try:
         # Ensure the data is a numpy array
@@ -137,7 +135,6 @@ class CausalSelfAttention(nn.Module):
             
             if self.wandb:
                 wandb.log({f"{wandb_name}/{wandb_name}-iter{self.iter}": wandb.Image(f"{weight_images_path}/{wandb_name}-iter{self.iter}.png")})
- 
     
     def forward(self, x, get_att=True, folder_name=None, save_forward=False):
         B, T, C = x.size() # batch size, sequence length, embedding dimensionality (n_embd)

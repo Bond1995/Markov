@@ -1,0 +1,31 @@
+name: "markov_llm_depth_heads"
+method: grid
+project: "markov-LLM-depth-heads-attention-ICL_P_Random-optimised-1st_Oct"
+parameters:
+  chain:
+    values: ["icl"]
+  order:
+    values: [1]
+  n_layer:
+    values: [2, 3]
+  n_head:
+    values: [1]
+  n_embd:
+    values: [32]
+  lr: 
+    values: [5e-3, 5e-4, 5e-4]
+  batch_size:
+    values: [128]
+  sequence_length:
+    values: [1024]
+  iterations:
+    values: [10000]
+  seed:
+    values: [1, 2, 3]
+  device:
+    values: ["cuda:1"] 
+
+command:
+  - python
+  - src/main.py
+  - ${args}

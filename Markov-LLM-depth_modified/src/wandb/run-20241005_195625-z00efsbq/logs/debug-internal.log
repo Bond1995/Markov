@@ -1,0 +1,797 @@
+2024-10-05 19:56:25,872 INFO    StreamThr :1385740 [internal.py:wandb_internal():85] W&B internal server running at pid: 1385740, started at: 2024-10-05 19:56:25.865845
+2024-10-05 19:56:25,879 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status
+2024-10-05 19:56:25,884 INFO    WriterThread:1385740 [datastore.py:open_for_write():87] open: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/run-z00efsbq.wandb
+2024-10-05 19:56:25,886 DEBUG   SenderThread:1385740 [sender.py:send():391] send: header
+2024-10-05 19:56:25,886 DEBUG   SenderThread:1385740 [sender.py:send():391] send: run
+2024-10-05 19:56:26,293 INFO    SenderThread:1385740 [dir_watcher.py:__init__():211] watching files in: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files
+2024-10-05 19:56:26,293 INFO    SenderThread:1385740 [sender.py:_start_run_threads():1200] run started: z00efsbq with start time 1728158185.853557
+2024-10-05 19:56:26,296 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: check_version
+2024-10-05 19:56:26,296 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: check_version
+2024-10-05 19:56:26,366 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: run_start
+2024-10-05 19:56:26,375 DEBUG   HandlerThread:1385740 [system_info.py:__init__():26] System info init
+2024-10-05 19:56:26,375 DEBUG   HandlerThread:1385740 [system_info.py:__init__():41] System info init done
+2024-10-05 19:56:26,375 INFO    HandlerThread:1385740 [system_monitor.py:start():194] Starting system monitor
+2024-10-05 19:56:26,375 INFO    SystemMonitor:1385740 [system_monitor.py:_start():158] Starting system asset monitoring threads
+2024-10-05 19:56:26,375 INFO    HandlerThread:1385740 [system_monitor.py:probe():214] Collecting system info
+2024-10-05 19:56:26,384 INFO    SystemMonitor:1385740 [interfaces.py:start():188] Started cpu monitoring
+2024-10-05 19:56:26,385 INFO    SystemMonitor:1385740 [interfaces.py:start():188] Started disk monitoring
+2024-10-05 19:56:26,385 INFO    SystemMonitor:1385740 [interfaces.py:start():188] Started gpu monitoring
+2024-10-05 19:56:26,386 INFO    SystemMonitor:1385740 [interfaces.py:start():188] Started memory monitoring
+2024-10-05 19:56:26,387 INFO    SystemMonitor:1385740 [interfaces.py:start():188] Started network monitoring
+2024-10-05 19:56:26,466 DEBUG   HandlerThread:1385740 [system_info.py:probe():152] Probing system
+2024-10-05 19:56:26,469 DEBUG   HandlerThread:1385740 [system_info.py:_probe_git():137] Probing git
+2024-10-05 19:56:26,498 DEBUG   HandlerThread:1385740 [system_info.py:_probe_git():145] Probing git done
+2024-10-05 19:56:26,498 DEBUG   HandlerThread:1385740 [system_info.py:probe():200] Probing system done
+2024-10-05 19:56:26,498 DEBUG   HandlerThread:1385740 [system_monitor.py:probe():223] {'os': 'Linux-5.15.0-122-generic-x86_64-with-glibc2.35', 'python': '3.10.0', 'heartbeatAt': '2024-10-05T19:56:26.466639', 'startedAt': '2024-10-05T19:56:25.834787', 'docker': None, 'cuda': None, 'args': (), 'state': 'running', 'program': '/mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/main.py', 'codePathLocal': 'main.py', 'codePath': 'Markov-LLM-depth_modified/src/main.py', 'git': {'remote': 'https://github.com/Bond1995/Markov.git', 'commit': 'a45c1fde886b6d639a59523b3dc27abece4d8b39'}, 'email': 'chanakya.ekbote@epfl.ch', 'root': '/mlbio_scratch/ekbote/Markov', 'host': 'mlbiosrv001', 'username': 'ekbote', 'executable': '/home/ekbote/.conda/envs/torch-2.4/bin/python', 'cpu_count': 128, 'cpu_count_logical': 128, 'cpu_freq': {'current': 2981.317476562499, 'min': 1500.0, 'max': 2250.0}, 'cpu_freq_per_core': [{'current': 3246.745, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.562, 'min': 1500.0, 'max': 2250.0}, {'current': 2039.03, 'min': 1500.0, 'max': 2250.0}, {'current': 1445.332, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.677, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.107, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.677, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.62, 'min': 1500.0, 'max': 2250.0}, {'current': 1857.433, 'min': 1500.0, 'max': 2250.0}, {'current': 3247.022, 'min': 1500.0, 'max': 2250.0}, {'current': 3244.692, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.756, 'min': 1500.0, 'max': 2250.0}, {'current': 3049.91, 'min': 1500.0, 'max': 2250.0}, {'current': 1857.615, 'min': 1500.0, 'max': 2250.0}, {'current': 3247.056, 'min': 1500.0, 'max': 2250.0}, {'current': 3114.064, 'min': 1500.0, 'max': 2250.0}, {'current': 2951.506, 'min': 1500.0, 'max': 2250.0}, {'current': 1857.468, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.71, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.653, 'min': 1500.0, 'max': 2250.0}, {'current': 3244.485, 'min': 1500.0, 'max': 2250.0}, {'current': 3244.257, 'min': 1500.0, 'max': 2250.0}, {'current': 3244.513, 'min': 1500.0, 'max': 2250.0}, {'current': 2691.546, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.743, 'min': 1500.0, 'max': 2250.0}, {'current': 2947.864, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.641, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.287, 'min': 1500.0, 'max': 2250.0}, {'current': 3247.023, 'min': 1500.0, 'max': 2250.0}, {'current': 1857.647, 'min': 1500.0, 'max': 2250.0}, {'current': 3247.041, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.966, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.686, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.692, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.753, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.801, 'min': 1500.0, 'max': 2250.0}, {'current': 3247.032, 'min': 1500.0, 'max': 2250.0}, {'current': 3248.764, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.967, 'min': 1500.0, 'max': 2250.0}, {'current': 3131.257, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.739, 'min': 1500.0, 'max': 2250.0}, {'current': 1857.465, 'min': 1500.0, 'max': 2250.0}, {'current': 1857.461, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.67, 'min': 1500.0, 'max': 2250.0}, {'current': 3247.133, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.888, 'min': 1500.0, 'max': 2250.0}, {'current': 3247.033, 'min': 1500.0, 'max': 2250.0}, {'current': 3247.277, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.735, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.731, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.653, 'min': 1500.0, 'max': 2250.0}, {'current': 1445.328, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.602, 'min': 1500.0, 'max': 2250.0}, {'current': 3244.492, 'min': 1500.0, 'max': 2250.0}, {'current': 2940.418, 'min': 1500.0, 'max': 2250.0}, {'current': 3244.438, 'min': 1500.0, 'max': 2250.0}, {'current': 1857.467, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.791, 'min': 1500.0, 'max': 2250.0}, {'current': 2932.128, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.761, 'min': 1500.0, 'max': 2250.0}, {'current': 3247.598, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.678, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.766, 'min': 1500.0, 'max': 2250.0}, {'current': 2930.107, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.261, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.341, 'min': 1500.0, 'max': 2250.0}, {'current': 1848.674, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.331, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.787, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.791, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.789, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.789, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.336, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.331, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.332, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.333, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.711, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.711, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.791, 'min': 1500.0, 'max': 2250.0}, {'current': 3247.047, 'min': 1500.0, 'max': 2250.0}, {'current': 3247.165, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.334, 'min': 1500.0, 'max': 2250.0}, {'current': 3247.206, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.332, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.614, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.793, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.676, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.792, 'min': 1500.0, 'max': 2250.0}, {'current': 3247.18, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.883, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.36, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.358, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.788, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.793, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.793, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.793, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.308, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.311, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.312, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.312, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.879, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.781, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.778, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.793, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.334, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.335, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.335, 'min': 1500.0, 'max': 2250.0}, {'current': 3247.18, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.805, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.807, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.806, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.28, 'min': 1500.0, 'max': 2250.0}, {'current': 3247.172, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.327, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.33, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.336, 'min': 1500.0, 'max': 2250.0}, {'current': 3247.547, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.797, 'min': 1500.0, 'max': 2250.0}, {'current': 3247.571, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.858, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.35, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.367, 'min': 1500.0, 'max': 2250.0}, {'current': 3247.221, 'min': 1500.0, 'max': 2250.0}, {'current': 3245.37, 'min': 1500.0, 'max': 2250.0}, {'current': 3244.551, 'min': 1500.0, 'max': 2250.0}, {'current': 3246.218, 'min': 1500.0, 'max': 2250.0}, {'current': 3244.305, 'min': 1500.0, 'max': 2250.0}, {'current': 3244.553, 'min': 1500.0, 'max': 2250.0}], 'disk': {'/': {'total': 1755.5893020629883, 'used': 1568.083641052246}}, 'gpu': 'NVIDIA GeForce RTX 3090', 'gpu_count': 8, 'gpu_devices': [{'name': 'NVIDIA GeForce RTX 3090', 'memory_total': 25769803776}, {'name': 'NVIDIA GeForce RTX 3090', 'memory_total': 25769803776}, {'name': 'NVIDIA GeForce RTX 3090', 'memory_total': 25769803776}, {'name': 'NVIDIA GeForce RTX 3090', 'memory_total': 25769803776}, {'name': 'NVIDIA GeForce RTX 3090', 'memory_total': 25769803776}, {'name': 'NVIDIA GeForce RTX 3090', 'memory_total': 25769803776}, {'name': 'NVIDIA GeForce RTX 3090', 'memory_total': 25769803776}, {'name': 'NVIDIA GeForce RTX 3090', 'memory_total': 25769803776}], 'memory': {'total': 1007.7145118713379}}
+2024-10-05 19:56:26,498 INFO    HandlerThread:1385740 [system_monitor.py:probe():224] Finished collecting system info
+2024-10-05 19:56:26,498 INFO    HandlerThread:1385740 [system_monitor.py:probe():227] Publishing system info
+2024-10-05 19:56:26,498 DEBUG   HandlerThread:1385740 [system_info.py:_save_conda():209] Saving list of conda packages installed into the current environment
+2024-10-05 19:56:27,296 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/conda-environment.yaml
+2024-10-05 19:56:30,286 DEBUG   HandlerThread:1385740 [system_info.py:_save_conda():224] Saving conda packages done
+2024-10-05 19:56:30,290 INFO    HandlerThread:1385740 [system_monitor.py:probe():229] Finished publishing system info
+2024-10-05 19:56:30,292 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:56:30,292 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-metadata.json with policy now
+2024-10-05 19:56:30,308 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/conda-environment.yaml
+2024-10-05 19:56:30,308 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/wandb-metadata.json
+2024-10-05 19:56:30,359 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: python_packages
+2024-10-05 19:56:30,359 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: python_packages
+2024-10-05 19:56:30,360 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: stop_status
+2024-10-05 19:56:30,361 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: stop_status
+2024-10-05 19:56:30,371 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:30,538 DEBUG   SenderThread:1385740 [sender.py:send():391] send: telemetry
+2024-10-05 19:56:30,887 INFO    wandb-upload_0:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/rpaahk2j-wandb-metadata.json
+2024-10-05 19:56:31,309 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/requirements.txt
+2024-10-05 19:56:31,310 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/output.log
+2024-10-05 19:56:31,371 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:31,543 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:56:32,371 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:33,311 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/output.log
+2024-10-05 19:56:33,372 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:34,042 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:56:34,043 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:56:34,043 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:56:34,046 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:56:34,313 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/wandb-summary.json
+2024-10-05 19:56:34,371 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:35,371 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:36,371 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:37,363 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:56:37,371 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:38,372 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:38,733 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:56:38,733 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/token_embeddings/token_embeddings-iter1_1_ffeeeb3c3b21d284d31d.png with policy now
+2024-10-05 19:56:38,778 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:56:38,778 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:56:38,779 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:56:38,781 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:56:38,814 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:56:38,814 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/positional_embeddings/pos_emb-iter1_2_6beae6dccb8e863e64a6.png with policy now
+2024-10-05 19:56:38,815 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:56:38,815 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:56:38,815 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:56:38,817 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:56:38,924 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:56:38,925 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/positional_embeddings/positional_embeddings-iter1_3_e230f8ee0f8e77cf2b01.png with policy now
+2024-10-05 19:56:38,925 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:56:38,925 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:56:38,925 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:56:38,933 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:56:39,108 INFO    wandb-upload_0:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/1eo0jpsi-media/images/token_embeddings/token_embeddings-iter1_1_ffeeeb3c3b21d284d31d.png
+2024-10-05 19:56:39,226 INFO    wandb-upload_1:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/u1uqg1kv-media/images/positional_embeddings/pos_emb-iter1_2_6beae6dccb8e863e64a6.png
+2024-10-05 19:56:39,322 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/wandb-summary.json
+2024-10-05 19:56:39,322 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings/positional_embeddings-iter1_3_e230f8ee0f8e77cf2b01.png
+2024-10-05 19:56:39,322 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings/pos_emb-iter1_2_6beae6dccb8e863e64a6.png
+2024-10-05 19:56:39,322 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/token_embeddings/token_embeddings-iter1_1_ffeeeb3c3b21d284d31d.png
+2024-10-05 19:56:39,323 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media
+2024-10-05 19:56:39,323 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/token_embeddings
+2024-10-05 19:56:39,323 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images
+2024-10-05 19:56:39,323 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings
+2024-10-05 19:56:39,335 INFO    wandb-upload_2:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/ctrlmeus-media/images/positional_embeddings/positional_embeddings-iter1_3_e230f8ee0f8e77cf2b01.png
+2024-10-05 19:56:39,372 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:39,743 INFO    wandb-upload_0:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/8j43701o-media/images/positional_embeddings/pos_emb-iter1_2_6beae6dccb8e863e64a6.png
+2024-10-05 19:56:39,749 INFO    wandb-upload_1:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/xpwijnur-media/images/token_embeddings/token_embeddings-iter1_1_ffeeeb3c3b21d284d31d.png
+2024-10-05 19:56:39,805 INFO    wandb-upload_2:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/6oi1n7ov-media/images/positional_embeddings/positional_embeddings-iter1_3_e230f8ee0f8e77cf2b01.png
+2024-10-05 19:56:40,372 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:41,263 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:56:41,264 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:56:41,264 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:56:41,268 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:56:41,306 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:56:41,307 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:56:41,308 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:56:41,308 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:56:41,310 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:56:41,310 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:56:41,310 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:56:41,312 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:56:41,324 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:56:41,325 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:56:41,325 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:56:41,326 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/wandb-summary.json
+2024-10-05 19:56:41,327 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:56:41,372 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:41,595 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:56:41,595 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/att-filtered-id0/att-filtered-id0-iter1_8_516b303b0fbb8ea2e49a.png with policy now
+2024-10-05 19:56:41,642 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:56:41,643 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:56:41,643 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:56:41,647 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:56:41,992 INFO    wandb-upload_0:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/nw2oi1xm-media/images/att-filtered-id0/att-filtered-id0-iter1_8_516b303b0fbb8ea2e49a.png
+2024-10-05 19:56:42,330 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/wandb-summary.json
+2024-10-05 19:56:42,331 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-filtered-id0/att-filtered-id0-iter1_8_516b303b0fbb8ea2e49a.png
+2024-10-05 19:56:42,331 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images
+2024-10-05 19:56:42,331 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-filtered-id0
+2024-10-05 19:56:42,373 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:42,647 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:56:42,771 INFO    wandb-upload_2:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/o8v6gytx-media/images/att-filtered-id0/att-filtered-id0-iter1_8_516b303b0fbb8ea2e49a.png
+2024-10-05 19:56:43,333 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/output.log
+2024-10-05 19:56:43,374 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:44,373 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:45,360 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: stop_status
+2024-10-05 19:56:45,360 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: stop_status
+2024-10-05 19:56:45,414 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:46,374 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:47,374 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:48,374 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:48,551 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:56:49,374 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:50,374 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:51,375 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:52,375 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:53,375 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:54,364 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:56:54,375 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:55,375 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:56,375 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:57,375 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:58,375 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:56:59,368 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:56:59,375 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:00,361 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: stop_status
+2024-10-05 19:57:00,362 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: stop_status
+2024-10-05 19:57:00,385 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/config.yaml
+2024-10-05 19:57:00,406 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:01,376 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:02,376 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:03,376 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:04,376 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:04,531 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:57:05,376 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:06,376 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:07,376 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:08,376 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:09,376 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:10,364 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:57:10,376 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:11,376 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:12,377 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:13,377 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:14,377 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:15,360 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: stop_status
+2024-10-05 19:57:15,361 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: stop_status
+2024-10-05 19:57:15,406 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:15,599 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:57:16,377 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:17,377 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:18,377 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:19,377 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:20,377 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:21,364 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:57:21,381 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:22,381 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:23,381 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:24,029 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:57:24,029 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/token_embeddings/token_embeddings-iter10_9_5b8939243228b041bbc2.png with policy now
+2024-10-05 19:57:24,074 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:57:24,075 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:57:24,075 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:57:24,079 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:57:24,084 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:57:24,084 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/positional_embeddings/pos_emb-iter10_10_9f78658315354ba093fd.png with policy now
+2024-10-05 19:57:24,084 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:57:24,085 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:57:24,085 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:57:24,090 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:57:24,179 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:57:24,179 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:57:24,180 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/positional_embeddings/positional_embeddings-iter10_11_7ce366147ea43677c96a.png with policy now
+2024-10-05 19:57:24,181 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:57:24,181 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:57:24,186 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:57:24,194 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:57:24,195 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:57:24,195 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:57:24,197 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:57:24,208 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:57:24,209 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:57:24,209 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:57:24,211 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:57:24,222 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:57:24,223 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:57:24,223 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:57:24,225 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:57:24,236 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:57:24,236 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:57:24,237 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:57:24,239 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:57:24,366 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:57:24,367 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:57:24,367 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/att-filtered-id0/att-filtered-id0-iter10_16_e978a50b6d9a4a4644e3.png with policy now
+2024-10-05 19:57:24,368 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:57:24,368 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:57:24,374 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:57:24,404 INFO    wandb-upload_0:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/5ewum3gj-media/images/token_embeddings/token_embeddings-iter10_9_5b8939243228b041bbc2.png
+2024-10-05 19:57:24,450 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/wandb-summary.json
+2024-10-05 19:57:24,450 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings/positional_embeddings-iter10_11_7ce366147ea43677c96a.png
+2024-10-05 19:57:24,450 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-filtered-id0/att-filtered-id0-iter10_16_e978a50b6d9a4a4644e3.png
+2024-10-05 19:57:24,451 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/token_embeddings/token_embeddings-iter10_9_5b8939243228b041bbc2.png
+2024-10-05 19:57:24,451 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings/pos_emb-iter10_10_9f78658315354ba093fd.png
+2024-10-05 19:57:24,451 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings
+2024-10-05 19:57:24,452 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/token_embeddings
+2024-10-05 19:57:24,452 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-filtered-id0
+2024-10-05 19:57:24,498 INFO    wandb-upload_2:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/trrl74ex-media/images/positional_embeddings/pos_emb-iter10_10_9f78658315354ba093fd.png
+2024-10-05 19:57:24,515 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:24,585 INFO    wandb-upload_1:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/a3c2g422-media/images/positional_embeddings/positional_embeddings-iter10_11_7ce366147ea43677c96a.png
+2024-10-05 19:57:24,623 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:57:24,623 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/att-id0/att-id0-iter10_17_6f8505cac37aec4cd6c0.png with policy now
+2024-10-05 19:57:24,670 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:57:24,671 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:57:24,671 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:57:24,673 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:57:24,770 INFO    wandb-upload_3:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/r9041g5b-media/images/att-filtered-id0/att-filtered-id0-iter10_16_e978a50b6d9a4a4644e3.png
+2024-10-05 19:57:24,862 INFO    wandb-upload_0:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/xqjqy09y-media/images/token_embeddings/token_embeddings-iter10_9_5b8939243228b041bbc2.png
+2024-10-05 19:57:25,018 INFO    wandb-upload_2:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/3pg49qvx-media/images/att-id0/att-id0-iter10_17_6f8505cac37aec4cd6c0.png
+2024-10-05 19:57:25,220 INFO    wandb-upload_1:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/wn7lmx33-media/images/positional_embeddings/pos_emb-iter10_10_9f78658315354ba093fd.png
+2024-10-05 19:57:25,271 INFO    wandb-upload_3:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/pey6egsb-media/images/positional_embeddings/positional_embeddings-iter10_11_7ce366147ea43677c96a.png
+2024-10-05 19:57:25,449 INFO    wandb-upload_0:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/pgbgl8ub-media/images/att-filtered-id0/att-filtered-id0-iter10_16_e978a50b6d9a4a4644e3.png
+2024-10-05 19:57:25,454 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/wandb-summary.json
+2024-10-05 19:57:25,454 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-id0/att-id0-iter10_17_6f8505cac37aec4cd6c0.png
+2024-10-05 19:57:25,454 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images
+2024-10-05 19:57:25,454 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-id0
+2024-10-05 19:57:25,511 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:25,908 INFO    wandb-upload_2:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/bc3ngkq7-media/images/att-id0/att-id0-iter10_17_6f8505cac37aec4cd6c0.png
+2024-10-05 19:57:26,365 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:57:26,387 DEBUG   SystemMonitor:1385740 [system_monitor.py:_start():172] Starting system metrics aggregation loop
+2024-10-05 19:57:26,389 DEBUG   SenderThread:1385740 [sender.py:send():391] send: stats
+2024-10-05 19:57:26,511 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:27,512 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:28,512 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:29,512 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:29,603 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:57:29,606 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:57:29,606 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:57:29,608 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:57:30,361 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: stop_status
+2024-10-05 19:57:30,361 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: stop_status
+2024-10-05 19:57:30,468 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/wandb-summary.json
+2024-10-05 19:57:30,512 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:31,471 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/output.log
+2024-10-05 19:57:31,512 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:31,538 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:57:32,512 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:33,513 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:34,513 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:35,513 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:36,513 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:37,366 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:57:37,513 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:38,513 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:39,513 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:40,513 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:41,513 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:42,514 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:43,365 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:57:43,513 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:44,514 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:45,361 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: stop_status
+2024-10-05 19:57:45,362 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: stop_status
+2024-10-05 19:57:45,514 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:46,514 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:47,514 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:48,514 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:48,516 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:57:49,514 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:50,514 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:51,514 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:52,515 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:53,516 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:54,366 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:57:54,516 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:55,247 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:57:55,247 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/token_embeddings/token_embeddings-iter20_19_2a2075eca59ea28a46e2.png with policy now
+2024-10-05 19:57:55,290 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:57:55,290 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:57:55,291 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:57:55,295 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:57:55,314 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:57:55,314 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/positional_embeddings/pos_emb-iter20_20_9f78658315354ba093fd.png with policy now
+2024-10-05 19:57:55,314 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:57:55,314 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:57:55,315 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:57:55,320 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:57:55,438 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:57:55,438 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/positional_embeddings/positional_embeddings-iter20_21_7ce366147ea43677c96a.png with policy now
+2024-10-05 19:57:55,482 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:57:55,482 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:57:55,483 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:57:55,484 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:57:55,484 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:57:55,486 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:57:55,487 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:57:55,487 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:57:55,488 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:57:55,489 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:57:55,489 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:57:55,490 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:57:55,492 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:57:55,492 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:57:55,492 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:57:55,494 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:57:55,502 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:57:55,503 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:57:55,503 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:57:55,505 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:57:55,516 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:55,635 INFO    wandb-upload_3:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/zhz1mwaa-media/images/token_embeddings/token_embeddings-iter20_19_2a2075eca59ea28a46e2.png
+2024-10-05 19:57:55,672 INFO    wandb-upload_1:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/gf2cbgm7-media/images/positional_embeddings/pos_emb-iter20_20_9f78658315354ba093fd.png
+2024-10-05 19:57:55,706 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:57:55,706 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/att-filtered-id0/att-filtered-id0-iter20_26_3c21e4614747d48b9958.png with policy now
+2024-10-05 19:57:55,758 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:57:55,758 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:57:55,758 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:57:55,760 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:57:55,848 INFO    wandb-upload_0:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/wxrp0gsn-media/images/positional_embeddings/positional_embeddings-iter20_21_7ce366147ea43677c96a.png
+2024-10-05 19:57:55,894 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/wandb-summary.json
+2024-10-05 19:57:55,894 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/token_embeddings/token_embeddings-iter20_19_2a2075eca59ea28a46e2.png
+2024-10-05 19:57:55,894 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-filtered-id0/att-filtered-id0-iter20_26_3c21e4614747d48b9958.png
+2024-10-05 19:57:55,894 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings/pos_emb-iter20_20_9f78658315354ba093fd.png
+2024-10-05 19:57:55,895 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings/positional_embeddings-iter20_21_7ce366147ea43677c96a.png
+2024-10-05 19:57:55,895 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings
+2024-10-05 19:57:55,895 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/token_embeddings
+2024-10-05 19:57:55,895 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-filtered-id0
+2024-10-05 19:57:55,942 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:57:55,943 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:57:55,943 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/att-id0/att-id0-iter20_27_d4c283687fc97efd1d43.png with policy now
+2024-10-05 19:57:55,943 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:57:55,943 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:57:55,947 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:57:56,086 INFO    wandb-upload_2:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/q1nhxiw1-media/images/att-filtered-id0/att-filtered-id0-iter20_26_3c21e4614747d48b9958.png
+2024-10-05 19:57:56,332 INFO    wandb-upload_1:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/qhid74zv-media/images/token_embeddings/token_embeddings-iter20_19_2a2075eca59ea28a46e2.png
+2024-10-05 19:57:56,344 INFO    wandb-upload_4:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/mjmctkvp-media/images/att-id0/att-id0-iter20_27_d4c283687fc97efd1d43.png
+2024-10-05 19:57:56,383 INFO    wandb-upload_0:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/e15g5g2f-media/images/positional_embeddings/pos_emb-iter20_20_9f78658315354ba093fd.png
+2024-10-05 19:57:56,397 DEBUG   SenderThread:1385740 [sender.py:send():391] send: stats
+2024-10-05 19:57:56,451 INFO    wandb-upload_3:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/1q417qem-media/images/positional_embeddings/positional_embeddings-iter20_21_7ce366147ea43677c96a.png
+2024-10-05 19:57:56,516 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:56,568 INFO    wandb-upload_2:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/wqvfxnok-media/images/att-filtered-id0/att-filtered-id0-iter20_26_3c21e4614747d48b9958.png
+2024-10-05 19:57:56,897 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/wandb-summary.json
+2024-10-05 19:57:56,898 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-id0/att-id0-iter20_27_d4c283687fc97efd1d43.png
+2024-10-05 19:57:56,898 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-id0
+2024-10-05 19:57:57,361 INFO    wandb-upload_1:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/f8phwx30-media/images/att-id0/att-id0-iter20_27_d4c283687fc97efd1d43.png
+2024-10-05 19:57:57,516 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:58,520 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:59,399 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:57:59,466 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:57:59,468 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:57:59,468 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:57:59,471 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:57:59,520 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:57:59,906 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/wandb-summary.json
+2024-10-05 19:58:00,361 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: stop_status
+2024-10-05 19:58:00,362 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: stop_status
+2024-10-05 19:58:00,520 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:00,910 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/output.log
+2024-10-05 19:58:01,521 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:02,521 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:03,521 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:04,521 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:04,598 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:58:05,521 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:06,521 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:07,521 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:08,521 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:09,522 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:10,366 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:58:10,528 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:11,526 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:12,532 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:13,532 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:14,534 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:15,361 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: stop_status
+2024-10-05 19:58:15,362 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: stop_status
+2024-10-05 19:58:15,534 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:15,541 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:58:16,542 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:17,542 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:18,542 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:19,543 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:20,542 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:21,366 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:58:21,543 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:22,543 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:23,543 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:24,543 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:25,543 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:26,368 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:58:26,396 DEBUG   SenderThread:1385740 [sender.py:send():391] send: stats
+2024-10-05 19:58:26,543 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:27,544 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:28,544 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:29,544 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:30,361 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: stop_status
+2024-10-05 19:58:30,362 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: stop_status
+2024-10-05 19:58:30,544 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:31,544 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:31,559 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:58:32,544 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:33,544 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:34,544 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:35,544 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:36,544 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:37,367 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:58:37,544 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:38,545 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:39,545 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:40,545 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:41,548 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:42,367 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:58:42,549 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:43,549 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:44,260 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:58:44,260 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/token_embeddings/token_embeddings-iter30_29_a9a1a95616add18afcab.png with policy now
+2024-10-05 19:58:44,306 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:58:44,307 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:58:44,307 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:58:44,311 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:58:44,318 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:58:44,318 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/positional_embeddings/pos_emb-iter30_30_38ae14d1ae542ec7af22.png with policy now
+2024-10-05 19:58:44,318 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:58:44,319 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:58:44,319 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:58:44,322 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:58:44,416 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:58:44,417 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:58:44,417 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/positional_embeddings/positional_embeddings-iter30_31_2fa62f7069e5e7ad9ff1.png with policy now
+2024-10-05 19:58:44,417 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:58:44,417 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:58:44,421 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:58:44,431 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:58:44,431 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:58:44,432 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:58:44,434 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:58:44,444 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:58:44,445 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:58:44,445 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:58:44,447 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:58:44,460 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:58:44,461 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:58:44,461 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:58:44,463 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:58:44,474 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:58:44,475 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:58:44,475 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:58:44,477 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:58:44,555 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:44,634 INFO    wandb-upload_0:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/22gy3o4z-media/images/token_embeddings/token_embeddings-iter30_29_a9a1a95616add18afcab.png
+2024-10-05 19:58:44,644 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:58:44,644 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/att-filtered-id0/att-filtered-id0-iter30_36_f98781b33e0bbb25b490.png with policy now
+2024-10-05 19:58:44,690 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:58:44,690 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:58:44,691 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:58:44,693 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:58:44,715 INFO    wandb-upload_2:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/0uwdxbj7-media/images/positional_embeddings/pos_emb-iter30_30_38ae14d1ae542ec7af22.png
+2024-10-05 19:58:44,779 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:58:44,779 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/att-id0/att-id0-iter30_37_b7d74c3afc940bcc77e2.png with policy now
+2024-10-05 19:58:44,779 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:58:44,780 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:58:44,780 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:58:44,784 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:58:44,813 INFO    wandb-upload_1:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/u805hx15-media/images/positional_embeddings/positional_embeddings-iter30_31_2fa62f7069e5e7ad9ff1.png
+2024-10-05 19:58:45,052 INFO    wandb-upload_4:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/5ihxf3i6-media/images/att-filtered-id0/att-filtered-id0-iter30_36_f98781b33e0bbb25b490.png
+2024-10-05 19:58:45,053 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/wandb-summary.json
+2024-10-05 19:58:45,054 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings/pos_emb-iter30_30_38ae14d1ae542ec7af22.png
+2024-10-05 19:58:45,054 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings/positional_embeddings-iter30_31_2fa62f7069e5e7ad9ff1.png
+2024-10-05 19:58:45,055 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-id0/att-id0-iter30_37_b7d74c3afc940bcc77e2.png
+2024-10-05 19:58:45,055 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/token_embeddings/token_embeddings-iter30_29_a9a1a95616add18afcab.png
+2024-10-05 19:58:45,056 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-filtered-id0/att-filtered-id0-iter30_36_f98781b33e0bbb25b490.png
+2024-10-05 19:58:45,056 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-filtered-id0
+2024-10-05 19:58:45,056 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/token_embeddings
+2024-10-05 19:58:45,056 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-id0
+2024-10-05 19:58:45,056 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings
+2024-10-05 19:58:45,179 INFO    wandb-upload_0:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/r33bj3eu-media/images/att-id0/att-id0-iter30_37_b7d74c3afc940bcc77e2.png
+2024-10-05 19:58:45,361 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: stop_status
+2024-10-05 19:58:45,362 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: stop_status
+2024-10-05 19:58:45,510 INFO    wandb-upload_4:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/hkng3llf-media/images/att-filtered-id0/att-filtered-id0-iter30_36_f98781b33e0bbb25b490.png
+2024-10-05 19:58:45,510 INFO    wandb-upload_2:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/hbudfl7v-media/images/positional_embeddings/pos_emb-iter30_30_38ae14d1ae542ec7af22.png
+2024-10-05 19:58:45,530 INFO    wandb-upload_1:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/5qzr3gwt-media/images/positional_embeddings/positional_embeddings-iter30_31_2fa62f7069e5e7ad9ff1.png
+2024-10-05 19:58:45,544 INFO    wandb-upload_3:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/htop9r03-media/images/token_embeddings/token_embeddings-iter30_29_a9a1a95616add18afcab.png
+2024-10-05 19:58:45,552 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:45,606 INFO    wandb-upload_0:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/fli29787-media/images/att-id0/att-id0-iter30_37_b7d74c3afc940bcc77e2.png
+2024-10-05 19:58:46,552 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:47,499 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:58:47,552 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:48,553 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:49,552 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:50,553 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:51,564 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:52,558 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:53,367 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:58:53,558 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:54,558 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:54,594 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:58:54,595 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:58:54,596 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:58:54,600 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:58:55,089 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/wandb-summary.json
+2024-10-05 19:58:55,558 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:56,397 DEBUG   SenderThread:1385740 [sender.py:send():391] send: stats
+2024-10-05 19:58:56,559 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:57,095 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/output.log
+2024-10-05 19:58:57,559 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:58,398 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:58:58,559 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:58:59,559 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:00,361 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: stop_status
+2024-10-05 19:59:00,362 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: stop_status
+2024-10-05 19:59:00,559 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:01,559 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:02,559 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:03,532 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:59:03,559 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:04,559 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:05,559 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:06,560 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:07,560 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:08,560 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:09,368 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:59:09,560 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:10,560 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:11,560 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:12,560 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:13,561 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:14,368 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:59:14,561 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:15,362 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: stop_status
+2024-10-05 19:59:15,362 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: stop_status
+2024-10-05 19:59:15,561 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:16,561 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:17,561 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:18,561 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:19,561 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:19,562 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:59:20,561 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:21,164 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:59:21,164 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/token_embeddings/token_embeddings-iter40_39_133d2e4db90fb0c95df0.png with policy now
+2024-10-05 19:59:21,187 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/token_embeddings/token_embeddings-iter40_39_133d2e4db90fb0c95df0.png
+2024-10-05 19:59:21,188 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/token_embeddings
+2024-10-05 19:59:21,206 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:59:21,206 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:59:21,207 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:59:21,209 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:59:21,233 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:59:21,233 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/positional_embeddings/pos_emb-iter40_40_38ae14d1ae542ec7af22.png with policy now
+2024-10-05 19:59:21,233 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:59:21,234 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:59:21,234 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:59:21,238 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:59:21,398 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:59:21,398 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:59:21,398 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/positional_embeddings/positional_embeddings-iter40_41_2fa62f7069e5e7ad9ff1.png with policy now
+2024-10-05 19:59:21,400 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:59:21,400 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:59:21,404 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:59:21,413 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:59:21,414 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:59:21,414 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:59:21,416 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:59:21,427 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:59:21,428 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:59:21,428 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:59:21,430 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:59:21,441 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:59:21,442 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:59:21,442 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:59:21,445 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:59:21,458 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:59:21,465 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:59:21,465 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:59:21,467 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:59:21,535 INFO    wandb-upload_4:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/6lvxqri3-media/images/token_embeddings/token_embeddings-iter40_39_133d2e4db90fb0c95df0.png
+2024-10-05 19:59:21,561 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:21,606 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:59:21,607 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/att-filtered-id0/att-filtered-id0-iter40_46_c844be54a8e248fec6e1.png with policy now
+2024-10-05 19:59:21,631 INFO    wandb-upload_1:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/z603qpc7-media/images/positional_embeddings/pos_emb-iter40_40_38ae14d1ae542ec7af22.png
+2024-10-05 19:59:21,650 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:59:21,651 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:59:21,651 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:59:21,653 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:59:21,721 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:59:21,721 DEBUG   SenderThread:1385740 [sender.py:send():391] send: files
+2024-10-05 19:59:21,722 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file media/images/att-id0/att-id0-iter40_47_54dfcaf4a9deaa117096.png with policy now
+2024-10-05 19:59:21,722 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:59:21,722 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:59:21,728 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:59:21,806 INFO    wandb-upload_0:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/1c0157yc-media/images/positional_embeddings/positional_embeddings-iter40_41_2fa62f7069e5e7ad9ff1.png
+2024-10-05 19:59:21,976 INFO    wandb-upload_3:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/rpmvzi7w-media/images/token_embeddings/token_embeddings-iter40_39_133d2e4db90fb0c95df0.png
+2024-10-05 19:59:21,982 INFO    wandb-upload_4:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/j2obdv5r-media/images/att-filtered-id0/att-filtered-id0-iter40_46_c844be54a8e248fec6e1.png
+2024-10-05 19:59:22,125 INFO    wandb-upload_2:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/mumprtnr-media/images/att-id0/att-id0-iter40_47_54dfcaf4a9deaa117096.png
+2024-10-05 19:59:22,193 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/wandb-summary.json
+2024-10-05 19:59:22,193 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-id0/att-id0-iter40_47_54dfcaf4a9deaa117096.png
+2024-10-05 19:59:22,193 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-filtered-id0/att-filtered-id0-iter40_46_c844be54a8e248fec6e1.png
+2024-10-05 19:59:22,194 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings/pos_emb-iter40_40_38ae14d1ae542ec7af22.png
+2024-10-05 19:59:22,194 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_created():271] file/dir created: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings/positional_embeddings-iter40_41_2fa62f7069e5e7ad9ff1.png
+2024-10-05 19:59:22,195 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings
+2024-10-05 19:59:22,195 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-id0
+2024-10-05 19:59:22,195 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-filtered-id0
+2024-10-05 19:59:22,561 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:22,648 INFO    wandb-upload_3:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/n6vb9h63-media/images/att-filtered-id0/att-filtered-id0-iter40_46_c844be54a8e248fec6e1.png
+2024-10-05 19:59:22,667 INFO    wandb-upload_4:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/poo699b1-media/images/positional_embeddings/positional_embeddings-iter40_41_2fa62f7069e5e7ad9ff1.png
+2024-10-05 19:59:22,667 INFO    wandb-upload_1:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/8sc5gm4u-media/images/att-id0/att-id0-iter40_47_54dfcaf4a9deaa117096.png
+2024-10-05 19:59:22,701 INFO    wandb-upload_2:1385740 [upload_job.py:push():130] Uploaded file /tmp/tmpl447ka5awandb/pwyeb7ye-media/images/positional_embeddings/pos_emb-iter40_40_38ae14d1ae542ec7af22.png
+2024-10-05 19:59:23,562 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:24,562 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:24,728 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:59:25,562 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:26,401 DEBUG   SenderThread:1385740 [sender.py:send():391] send: stats
+2024-10-05 19:59:26,562 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:27,562 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:28,562 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:28,650 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: partial_history
+2024-10-05 19:59:28,650 DEBUG   SenderThread:1385740 [sender.py:send():391] send: history
+2024-10-05 19:59:28,651 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: summary_record
+2024-10-05 19:59:28,653 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:59:29,219 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/wandb-summary.json
+2024-10-05 19:59:29,562 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:30,363 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: stop_status
+2024-10-05 19:59:30,363 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: stop_status
+2024-10-05 19:59:30,562 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:30,587 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:59:31,226 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/output.log
+2024-10-05 19:59:31,562 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:32,563 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:33,563 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:34,563 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:35,563 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:36,368 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:59:36,563 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:37,563 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:38,563 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:39,563 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:40,563 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:41,368 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:59:41,564 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:42,568 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:43,566 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:44,566 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:45,363 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: stop_status
+2024-10-05 19:59:45,363 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: stop_status
+2024-10-05 19:59:45,566 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:46,558 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:59:46,566 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:47,566 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:48,567 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:49,567 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: internal_messages
+2024-10-05 19:59:50,447 DEBUG   SenderThread:1385740 [sender.py:send():391] send: exit
+2024-10-05 19:59:50,447 INFO    SenderThread:1385740 [sender.py:send_exit():598] handling exit code: 255
+2024-10-05 19:59:50,448 INFO    SenderThread:1385740 [sender.py:send_exit():600] handling runtime: 204
+2024-10-05 19:59:50,450 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:59:50,450 INFO    SenderThread:1385740 [sender.py:send_exit():606] send defer
+2024-10-05 19:59:50,451 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: defer
+2024-10-05 19:59:50,451 INFO    HandlerThread:1385740 [handler.py:handle_request_defer():184] handle defer: 0
+2024-10-05 19:59:50,451 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: defer
+2024-10-05 19:59:50,451 INFO    SenderThread:1385740 [sender.py:send_request_defer():622] handle sender defer: 0
+2024-10-05 19:59:50,451 INFO    SenderThread:1385740 [sender.py:transition_state():626] send defer: 1
+2024-10-05 19:59:50,451 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: defer
+2024-10-05 19:59:50,451 INFO    HandlerThread:1385740 [handler.py:handle_request_defer():184] handle defer: 1
+2024-10-05 19:59:50,451 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: defer
+2024-10-05 19:59:50,451 INFO    SenderThread:1385740 [sender.py:send_request_defer():622] handle sender defer: 1
+2024-10-05 19:59:50,451 INFO    SenderThread:1385740 [sender.py:transition_state():626] send defer: 2
+2024-10-05 19:59:50,451 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: defer
+2024-10-05 19:59:50,451 INFO    HandlerThread:1385740 [handler.py:handle_request_defer():184] handle defer: 2
+2024-10-05 19:59:50,451 INFO    HandlerThread:1385740 [system_monitor.py:finish():203] Stopping system monitor
+2024-10-05 19:59:50,451 DEBUG   SystemMonitor:1385740 [system_monitor.py:_start():179] Finished system metrics aggregation loop
+2024-10-05 19:59:50,452 DEBUG   SystemMonitor:1385740 [system_monitor.py:_start():183] Publishing last batch of metrics
+2024-10-05 19:59:50,452 INFO    HandlerThread:1385740 [interfaces.py:finish():200] Joined cpu monitor
+2024-10-05 19:59:50,454 INFO    HandlerThread:1385740 [interfaces.py:finish():200] Joined disk monitor
+2024-10-05 19:59:51,238 INFO    HandlerThread:1385740 [interfaces.py:finish():200] Joined gpu monitor
+2024-10-05 19:59:51,238 INFO    HandlerThread:1385740 [interfaces.py:finish():200] Joined memory monitor
+2024-10-05 19:59:51,239 INFO    HandlerThread:1385740 [interfaces.py:finish():200] Joined network monitor
+2024-10-05 19:59:51,239 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: defer
+2024-10-05 19:59:51,239 INFO    SenderThread:1385740 [sender.py:send_request_defer():622] handle sender defer: 2
+2024-10-05 19:59:51,239 INFO    SenderThread:1385740 [sender.py:transition_state():626] send defer: 3
+2024-10-05 19:59:51,239 DEBUG   SenderThread:1385740 [sender.py:send():391] send: stats
+2024-10-05 19:59:51,241 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: defer
+2024-10-05 19:59:51,242 INFO    HandlerThread:1385740 [handler.py:handle_request_defer():184] handle defer: 3
+2024-10-05 19:59:51,242 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: defer
+2024-10-05 19:59:51,242 INFO    SenderThread:1385740 [sender.py:send_request_defer():622] handle sender defer: 3
+2024-10-05 19:59:51,242 INFO    SenderThread:1385740 [sender.py:transition_state():626] send defer: 4
+2024-10-05 19:59:51,242 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: defer
+2024-10-05 19:59:51,242 INFO    HandlerThread:1385740 [handler.py:handle_request_defer():184] handle defer: 4
+2024-10-05 19:59:51,242 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: defer
+2024-10-05 19:59:51,242 INFO    SenderThread:1385740 [sender.py:send_request_defer():622] handle sender defer: 4
+2024-10-05 19:59:51,242 INFO    SenderThread:1385740 [sender.py:transition_state():626] send defer: 5
+2024-10-05 19:59:51,242 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: defer
+2024-10-05 19:59:51,242 INFO    HandlerThread:1385740 [handler.py:handle_request_defer():184] handle defer: 5
+2024-10-05 19:59:51,245 DEBUG   SenderThread:1385740 [sender.py:send():391] send: summary
+2024-10-05 19:59:51,247 INFO    SenderThread:1385740 [sender.py:_save_file():1466] saving file wandb-summary.json with policy end
+2024-10-05 19:59:51,248 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: defer
+2024-10-05 19:59:51,248 INFO    SenderThread:1385740 [sender.py:send_request_defer():622] handle sender defer: 5
+2024-10-05 19:59:51,248 INFO    SenderThread:1385740 [sender.py:transition_state():626] send defer: 6
+2024-10-05 19:59:51,248 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: defer
+2024-10-05 19:59:51,248 INFO    HandlerThread:1385740 [handler.py:handle_request_defer():184] handle defer: 6
+2024-10-05 19:59:51,248 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: defer
+2024-10-05 19:59:51,248 INFO    SenderThread:1385740 [sender.py:send_request_defer():622] handle sender defer: 6
+2024-10-05 19:59:51,248 INFO    SenderThread:1385740 [sender.py:transition_state():626] send defer: 7
+2024-10-05 19:59:51,248 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: status_report
+2024-10-05 19:59:51,248 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: defer
+2024-10-05 19:59:51,248 INFO    HandlerThread:1385740 [handler.py:handle_request_defer():184] handle defer: 7
+2024-10-05 19:59:51,248 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: defer
+2024-10-05 19:59:51,248 INFO    SenderThread:1385740 [sender.py:send_request_defer():622] handle sender defer: 7
+2024-10-05 19:59:51,297 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/wandb-summary.json
+2024-10-05 19:59:51,447 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: poll_exit
+2024-10-05 19:59:53,302 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/output.log
+2024-10-05 19:59:54,411 INFO    SenderThread:1385740 [sender.py:transition_state():626] send defer: 8
+2024-10-05 19:59:54,411 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: poll_exit
+2024-10-05 19:59:54,412 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: defer
+2024-10-05 19:59:54,412 INFO    HandlerThread:1385740 [handler.py:handle_request_defer():184] handle defer: 8
+2024-10-05 19:59:54,412 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: defer
+2024-10-05 19:59:54,412 INFO    SenderThread:1385740 [sender.py:send_request_defer():622] handle sender defer: 8
+2024-10-05 19:59:54,412 INFO    SenderThread:1385740 [job_builder.py:build():443] Attempting to build job artifact
+2024-10-05 19:59:54,414 INFO    SenderThread:1385740 [job_builder.py:_get_source_type():572] is repo sourced job
+2024-10-05 19:59:54,450 INFO    SenderThread:1385740 [job_builder.py:build():548] adding wandb-job metadata file
+2024-10-05 19:59:54,452 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: poll_exit
+2024-10-05 19:59:54,455 INFO    SenderThread:1385740 [sender.py:transition_state():626] send defer: 9
+2024-10-05 19:59:54,455 DEBUG   SenderThread:1385740 [sender.py:send_request():418] send_request: poll_exit
+2024-10-05 19:59:54,455 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: defer
+2024-10-05 19:59:54,455 INFO    HandlerThread:1385740 [handler.py:handle_request_defer():184] handle defer: 9
+2024-10-05 19:59:54,455 DEBUG   SenderThread:1385740 [sender.py:send():391] send: artifact
+2024-10-05 19:59:55,112 WARNING StreamThr :1385740 [internal.py:is_dead():413] Internal process exiting, parent pid 1385654 disappeared
+2024-10-05 19:59:55,112 ERROR   StreamThr :1385740 [internal.py:wandb_internal():151] Internal process shutdown.
+2024-10-05 19:59:55,307 INFO    Thread-12 :1385740 [dir_watcher.py:_on_file_modified():288] file/dir modified: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/output.log
+2024-10-05 19:59:55,453 DEBUG   HandlerThread:1385740 [handler.py:handle_request():158] handle_request: poll_exit
+2024-10-05 19:59:55,453 INFO    HandlerThread:1385740 [handler.py:finish():880] shutting down handler
+2024-10-05 19:59:55,453 INFO    WriterThread:1385740 [datastore.py:close():296] close: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/run-z00efsbq.wandb
+2024-10-05 19:59:55,463 INFO    wandb-upload_0:1385740 [upload_job.py:push():85] Skipped uploading /home/ekbote/.local/share/wandb/artifacts/staging/tmphp9dcxu4
+2024-10-05 19:59:55,768 INFO    wandb-upload_3:1385740 [upload_job.py:push():88] Uploaded file /tmp/tmpz0bzqcy6/wandb-job.json
+2024-10-05 19:59:56,767 INFO    SenderThread:1385740 [sender.py:send_artifact():1549] sent artifact job-https___github.com_Bond1995_Markov.git_Markov-LLM-depth_modified_src_main.py - {'id': 'QXJ0aWZhY3Q6MTI2MjQ4NDk2Mg==', 'state': 'PENDING', 'artifactSequence': {'id': 'QXJ0aWZhY3RDb2xsZWN0aW9uOjQ2NjQ4MDAyNg==', 'latestArtifact': {'id': 'QXJ0aWZhY3Q6MTI2MjQ3ODkzMw==', 'versionIndex': 0}}}
+2024-10-05 19:59:56,768 INFO    SenderThread:1385740 [sender.py:finish():1631] shutting down sender
+2024-10-05 19:59:56,768 INFO    SenderThread:1385740 [dir_watcher.py:finish():358] shutting down directory watcher
+2024-10-05 19:59:57,310 INFO    SenderThread:1385740 [dir_watcher.py:finish():388] scan: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files
+2024-10-05 19:59:57,310 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/config.yaml config.yaml
+2024-10-05 19:59:57,310 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/conda-environment.yaml conda-environment.yaml
+2024-10-05 19:59:57,311 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/wandb-metadata.json wandb-metadata.json
+2024-10-05 19:59:57,311 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/requirements.txt requirements.txt
+2024-10-05 19:59:57,311 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/output.log output.log
+2024-10-05 19:59:57,311 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/wandb-summary.json wandb-summary.json
+2024-10-05 19:59:57,320 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/token_embeddings/token_embeddings-iter1_1_ffeeeb3c3b21d284d31d.png media/images/token_embeddings/token_embeddings-iter1_1_ffeeeb3c3b21d284d31d.png
+2024-10-05 19:59:57,320 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/token_embeddings/token_embeddings-iter10_9_5b8939243228b041bbc2.png media/images/token_embeddings/token_embeddings-iter10_9_5b8939243228b041bbc2.png
+2024-10-05 19:59:57,320 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/token_embeddings/token_embeddings-iter20_19_2a2075eca59ea28a46e2.png media/images/token_embeddings/token_embeddings-iter20_19_2a2075eca59ea28a46e2.png
+2024-10-05 19:59:57,320 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/token_embeddings/token_embeddings-iter30_29_a9a1a95616add18afcab.png media/images/token_embeddings/token_embeddings-iter30_29_a9a1a95616add18afcab.png
+2024-10-05 19:59:57,320 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/token_embeddings/token_embeddings-iter40_39_133d2e4db90fb0c95df0.png media/images/token_embeddings/token_embeddings-iter40_39_133d2e4db90fb0c95df0.png
+2024-10-05 19:59:57,320 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings/pos_emb-iter1_2_6beae6dccb8e863e64a6.png media/images/positional_embeddings/pos_emb-iter1_2_6beae6dccb8e863e64a6.png
+2024-10-05 19:59:57,321 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings/positional_embeddings-iter1_3_e230f8ee0f8e77cf2b01.png media/images/positional_embeddings/positional_embeddings-iter1_3_e230f8ee0f8e77cf2b01.png
+2024-10-05 19:59:57,321 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings/pos_emb-iter10_10_9f78658315354ba093fd.png media/images/positional_embeddings/pos_emb-iter10_10_9f78658315354ba093fd.png
+2024-10-05 19:59:57,321 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings/positional_embeddings-iter10_11_7ce366147ea43677c96a.png media/images/positional_embeddings/positional_embeddings-iter10_11_7ce366147ea43677c96a.png
+2024-10-05 19:59:57,321 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings/pos_emb-iter20_20_9f78658315354ba093fd.png media/images/positional_embeddings/pos_emb-iter20_20_9f78658315354ba093fd.png
+2024-10-05 19:59:57,321 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings/positional_embeddings-iter20_21_7ce366147ea43677c96a.png media/images/positional_embeddings/positional_embeddings-iter20_21_7ce366147ea43677c96a.png
+2024-10-05 19:59:57,321 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings/pos_emb-iter30_30_38ae14d1ae542ec7af22.png media/images/positional_embeddings/pos_emb-iter30_30_38ae14d1ae542ec7af22.png
+2024-10-05 19:59:57,321 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings/positional_embeddings-iter30_31_2fa62f7069e5e7ad9ff1.png media/images/positional_embeddings/positional_embeddings-iter30_31_2fa62f7069e5e7ad9ff1.png
+2024-10-05 19:59:57,321 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings/pos_emb-iter40_40_38ae14d1ae542ec7af22.png media/images/positional_embeddings/pos_emb-iter40_40_38ae14d1ae542ec7af22.png
+2024-10-05 19:59:57,321 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/positional_embeddings/positional_embeddings-iter40_41_2fa62f7069e5e7ad9ff1.png media/images/positional_embeddings/positional_embeddings-iter40_41_2fa62f7069e5e7ad9ff1.png
+2024-10-05 19:59:57,321 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-filtered-id0/att-filtered-id0-iter1_8_516b303b0fbb8ea2e49a.png media/images/att-filtered-id0/att-filtered-id0-iter1_8_516b303b0fbb8ea2e49a.png
+2024-10-05 19:59:57,321 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-filtered-id0/att-filtered-id0-iter10_16_e978a50b6d9a4a4644e3.png media/images/att-filtered-id0/att-filtered-id0-iter10_16_e978a50b6d9a4a4644e3.png
+2024-10-05 19:59:57,322 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-filtered-id0/att-filtered-id0-iter20_26_3c21e4614747d48b9958.png media/images/att-filtered-id0/att-filtered-id0-iter20_26_3c21e4614747d48b9958.png
+2024-10-05 19:59:57,322 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-filtered-id0/att-filtered-id0-iter30_36_f98781b33e0bbb25b490.png media/images/att-filtered-id0/att-filtered-id0-iter30_36_f98781b33e0bbb25b490.png
+2024-10-05 19:59:57,322 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-filtered-id0/att-filtered-id0-iter40_46_c844be54a8e248fec6e1.png media/images/att-filtered-id0/att-filtered-id0-iter40_46_c844be54a8e248fec6e1.png
+2024-10-05 19:59:57,332 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-id0/att-id0-iter10_17_6f8505cac37aec4cd6c0.png media/images/att-id0/att-id0-iter10_17_6f8505cac37aec4cd6c0.png
+2024-10-05 19:59:57,332 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-id0/att-id0-iter20_27_d4c283687fc97efd1d43.png media/images/att-id0/att-id0-iter20_27_d4c283687fc97efd1d43.png
+2024-10-05 19:59:57,332 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-id0/att-id0-iter30_37_b7d74c3afc940bcc77e2.png media/images/att-id0/att-id0-iter30_37_b7d74c3afc940bcc77e2.png
+2024-10-05 19:59:57,332 INFO    SenderThread:1385740 [dir_watcher.py:finish():402] scan save: /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/media/images/att-id0/att-id0-iter40_47_54dfcaf4a9deaa117096.png media/images/att-id0/att-id0-iter40_47_54dfcaf4a9deaa117096.png
+2024-10-05 19:59:57,332 INFO    SenderThread:1385740 [file_pusher.py:finish():169] shutting down file pusher
+2024-10-05 19:59:57,332 INFO    SenderThread:1385740 [file_pusher.py:join():175] waiting for file pusher
+2024-10-05 19:59:57,667 INFO    wandb-upload_1:1385740 [upload_job.py:push():130] Uploaded file /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/config.yaml
+2024-10-05 19:59:57,680 INFO    wandb-upload_2:1385740 [upload_job.py:push():130] Uploaded file /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/conda-environment.yaml
+2024-10-05 19:59:57,691 INFO    wandb-upload_0:1385740 [upload_job.py:push():130] Uploaded file /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/output.log
+2024-10-05 19:59:57,693 INFO    wandb-upload_3:1385740 [upload_job.py:push():130] Uploaded file /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/wandb-summary.json
+2024-10-05 19:59:57,743 INFO    wandb-upload_4:1385740 [upload_job.py:push():130] Uploaded file /mlbio_scratch/ekbote/Markov/Markov-LLM-depth_modified/src/wandb/run-20241005_195625-z00efsbq/files/requirements.txt
+2024-10-05 19:59:58,338 INFO    SenderThread:1385740 [file_stream.py:finish():601] file stream finish called
+2024-10-05 19:59:58,783 INFO    SenderThread:1385740 [file_stream.py:finish():605] file stream finish is done
