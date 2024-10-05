@@ -1,6 +1,6 @@
 name: "markov_llm_depth_heads"
 method: grid
-project: "markov-LLM-depth-heads-attention-ICL_P_Random-optimised-1st_Oct"
+project: "markov-LLM-depth-heads-attention-ICL_P_Random-optimised-modified-5th_Oct"
 parameters:
   chain:
     values: ["icl"]
@@ -17,13 +17,15 @@ parameters:
   batch_size:
     values: [128]
   sequence_length:
-    values: [1024]
+    values: [512]
   iterations:
     values: [10000]
   seed:
     values: [1, 2, 3]
   device:
     values: ["cuda:1"] 
+  opt:
+    values: ["sgd"]
 
 command:
   - python

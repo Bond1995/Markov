@@ -107,7 +107,7 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
         opt.zero_grad(set_to_none=True)
         itr += 1
 
-        
+        print(f"Training iteration {itr} | Loss: {loss.item()}")
         
         if itr % eval_freq == 0 or itr == iterations: # from here it's only evaluation code, all the training is above
             
