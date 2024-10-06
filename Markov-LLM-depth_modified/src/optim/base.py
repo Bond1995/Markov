@@ -106,7 +106,6 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
         scheduler.step()
         opt.zero_grad(set_to_none=True)
         itr += 1
-
         print(f"Training iteration {itr} | Loss: {loss.item()}")
         
         if itr % eval_freq == 0 or itr == iterations: # from here it's only evaluation code, all the training is above
@@ -270,15 +269,16 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
     
     save_metrics_to_json(metrics_list, filename=f"{model.ckpt_path}/metrics.json")
 
-
     for i in range(10):
         folder_name = f"post_training-{i}"
         wandb_run_dir = wandb.run.dir
         ckpt_path_per_folder = f"{model.ckpt_path}/{folder_name}"
         print(f"Saving data to {ckpt_path_per_folder}")
         os.makedirs(ckpt_path_per_folder, exist_ok=True)
-        P_test_i = get_random_P(order, generator, extra_args.device, extra_args.dtype)
-        x, y = get_batch(P_test_i, order, sequence_length, 1, generator, extra_args)
+        alpha = 0.5 * torch.ones((1, 2**order, 2))
+        dist = Dirichlet(alpha)
+        P_test_i = get_random_P(order, 1, generator, dist, extra_args.device, extra_args.dtype)
+        x, y = get_batch(P_test_i, order, sequence_length, 1, generator, dist, extra_args)
         
         np.save(f"{ckpt_path_per_folder}/P_test.npy", P_test_i.cpu().numpy())
         # try:

@@ -510,7 +510,12 @@ def estimate_transition_states(
     """
     # Convert x and logits to numpy arrays after burn-in period
     x = x.view(-1, order).cpu().numpy()[burn_period:]
-    logits = logits.detach().view(-1, 2).cpu().numpy()[burn_period:]
+    x = x.cpu().numpy()
+    x = np.lib.stride_tricks.sliding_window_view(x, window_shape=order)
+    x = x[burn_period:]
+    logits = logits.detach().view(-1, 2).cpu().numpy()
+    logits = logits[order - 1 :]
+    logits = logits[burn_period:]
 
     all_states, transition_states_0, transition_states_1 = get_all_transitions_states(
         order

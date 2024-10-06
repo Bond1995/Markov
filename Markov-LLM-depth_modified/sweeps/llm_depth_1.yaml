@@ -1,6 +1,6 @@
 name: "markov_llm_depth_heads"
 method: grid
-project: "markov-LLM-depth-heads-attention-ICL_P_Random-optimised-modified-5th_Oct"
+project: "markov-LLM-depth-heads-attention-ICL_P_Random-optimised-modified-6th_Oct"
 parameters:
   chain:
     values: ["icl"]

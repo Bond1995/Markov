@@ -276,10 +276,10 @@ class Block(nn.Module):
         self.ln_2 = LayerNorm(config.n_embd, bias=config.bias, **factory_kwargs)
         self.mlp = MLP(id, config)
 
-    def forward(self, x, get_att=False):
-        z, att_mean, att_std = self.attn(self.ln_1(x), get_att=get_att)
+    def forward(self, x, get_att=False, save_forward=False, folder_name=None):
+        z, att_mean, att_std = self.attn(self.ln_1(x), get_att=get_att, folder_name=folder_name, save_forward=save_forward)
         x = x + z
-        x = x + self.mlp(self.ln_2(x))
+        x = x + self.mlp(self.ln_2(x), folder_name=folder_name, save_forward=save_forward)
         return x, att_mean, att_std
     
 
@@ -425,7 +425,7 @@ class GPTBase(nn.Module):
 
         x = self.transformer.drop(tok_emb + pos_emb)
         for block in self.transformer.h:
-            x, att_mean, att_std = block(x, get_att=get_att)
+            x, att_mean, att_std = block(x, get_att=get_att, folder_name=folder_name, save_forward=save_forward)
         x = self.transformer.ln_f(x) # (b, t, n_embd)
 
         if targets is not None:
