@@ -19,3 +19,6 @@ Markov-LLM-depth_modified/wandb/*
 Markov-LLM-depth_modified/exps/*
 exps/*
 Markov-LLM-depth_modified/src/wandb/*
+Markov-LLM-depth_modified/src/exps/*
+.vscode/*
+Markov-LLM-depth_modified/model.pt
