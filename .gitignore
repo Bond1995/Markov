@@ -21,3 +21,5 @@ exps/*
 Markov-LLM-depth_modified/exps/*
 Markov-LLM-depth_modified/src/exps/*
 Markov-LLM-depth_modified/wandb/*
+Markov-LLM-depth_modified/src/wandb/*
+analyze_wandb/optimal/*
