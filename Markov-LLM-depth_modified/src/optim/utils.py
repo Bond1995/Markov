@@ -509,7 +509,6 @@ def estimate_transition_states(
             - transition_dict_count: Count of occurrences for each state.
     """
     # Convert x and logits to numpy arrays after burn-in period
-    x = x.view(-1, order).cpu().numpy()[burn_period:]
     x = x.cpu().numpy()
     x = np.lib.stride_tricks.sliding_window_view(x, window_shape=order)
     x = x[burn_period:]
