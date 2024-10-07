@@ -17,3 +17,7 @@ Markov-LLM-depth/models/__pycache__
 analyze_wandb/optimal/*[]
 Markov-LLM-depth_modified/model.pt
 exps/*
+.vscode/*
+Markov-LLM-depth_modified/exps/*
+Markov-LLM-depth_modified/src/exps/*
+Markov-LLM-depth_modified/wandb/*
