@@ -52,13 +52,14 @@ def save_metrics_to_json(metrics, filename="metrics.json"):
         json.dump(serializable_metrics, f, indent=4)
 
 
-def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_size, sequence_length, generator, eval_freq, ckpt_path, distributed_backend, extra_args):
+def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_size_per_chain, num_chains, sequence_length, generator, eval_freq, ckpt_path, distributed_backend, extra_args):
     device_type = 'cuda' if 'cuda' in str(extra_args.device) else 'cpu'
     type_ctx = nullcontext() if device_type == 'cpu' else torch.amp.autocast(
         device_type=device_type, dtype=torch.float16)  # extra_args.dtype) #changed!
     itr, substep, best_val_loss, text_table = 0, 0, float('inf'), None # best_val_loss not used atm, early stopping not recommended but possible 
 
     stats = {'train_loss': [], 'val_loss': [], 'val_pp': [], 'val_acc': []}
+    batch_size = batch_size_per_chain * num_chains
     
     if not extra_args.no_compile:
         print(f"Compiling model ...")
@@ -66,13 +67,14 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
 
     alpha = 0.5 * torch.ones((batch_size, 2**order, 2))
     dist = Dirichlet(alpha)
+    dist = None
 
     if P is not None:
         P_test = P
         print("Markov transition matrix:")
         print(P)
     else:
-        P_test = get_random_P(order, 1, generator, None, extra_args.device, extra_args.dtype).squeeze(0)
+        P_test = get_random_P(order, 1, 1, generator, None, extra_args.device, extra_args.dtype).squeeze(0)
         print("Test Markov transition matrix:")
         print(P_test)
     
@@ -92,7 +94,7 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
         model.train()
         
         for microstep_idx in range(acc_steps):  # gradient accumulation
-            x, y, P_batch = get_batch(None, order, sequence_length, batch_size, generator, dist, extra_args, return_P=True)
+            x, y, P_batch = get_batch(None, order, sequence_length, batch_size_per_chain, num_chains, generator, dist, extra_args, return_P=True)
             with type_ctx:
                 outputs = model(x, targets=y, )
             loss = outputs['loss'] / acc_steps
@@ -114,7 +116,7 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
             model.eval()
             
             # Estimating the transition states
-            x, y, P_batch = get_batch(None, order, sequence_length, batch_size, generator, dist, extra_args, return_P=True)
+            x, y, P_batch = get_batch(None, order, sequence_length, batch_size_per_chain, num_chains, generator, dist, extra_args, return_P=True)
             
             outputs = model(x, targets=y, get_logits=True)
             
@@ -199,7 +201,7 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
             
             train_loss = loss.detach().cpu().item()
             current_lr = scheduler.get_last_lr()[0] if scheduler is not None else extra_args.lr
-            val_acc, val_loss, val_perplexity = eval(model, P_test, order, sequence_length, batch_size,
+            val_acc, val_loss, val_perplexity = eval(model, P_test, order, sequence_length, batch_size_per_chain, num_chains,
                                                     generator, extra_args, max_num_batches=10, ctx=type_ctx)
 
             print_string = f"{itr} [train] loss={train_loss:.3f} [val] loss={val_loss:.3f}, pp={val_perplexity:.2f}, acc={val_acc:3f}"
@@ -253,7 +255,7 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
                                 "est/empirical_est_" + str(k): est_vec[k][i].detach().cpu().item(),
                             })
                 
-                att_mean, att_std = eval_att(model, P_test, order, sequence_length, 100,
+                att_mean, att_std = eval_att(model, P_test, order, sequence_length, batch_size_per_chain, num_chains,
                                                         generator, extra_args, device=extra_args.device, ctx=type_ctx)
                 if extra_args.wandb:
                     wandb.log({
@@ -277,8 +279,9 @@ def train_base(model, opt, P, order, scheduler, iterations, acc_steps, batch_siz
         os.makedirs(ckpt_path_per_folder, exist_ok=True)
         alpha = 0.5 * torch.ones((1, 2**order, 2))
         dist = Dirichlet(alpha)
-        P_test_i = get_random_P(order, 1, generator, dist, extra_args.device, extra_args.dtype)
-        x, y = get_batch(P_test_i, order, sequence_length, 1, generator, dist, extra_args)
+        dist = None
+        P_test_i = get_random_P(order, 1, 1, generator, dist, extra_args.device, extra_args.dtype)
+        x, y = get_batch(P_test_i, order, sequence_length, 1, 1, generator, dist, extra_args)
         
         np.save(f"{ckpt_path_per_folder}/P_test.npy", P_test_i.cpu().numpy())
         # try:

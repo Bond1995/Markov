@@ -1,6 +1,6 @@
 name: "markov_llm_depth_heads"
 method: grid
-project: "markov-LLM-depth-heads-attention-ICL_P_Random-optimised-modified-6th_Oct"
+project: "markov-LLM-depth-heads-attention-ICL_P_Random-optimised-modified-8th_Oct"
 parameters:
   chain:
     values: ["icl"]
@@ -11,19 +11,21 @@ parameters:
   n_head:
     values: [1]
   n_embd:
-    values: [32, 8, 16, 64]  # Merged with previous `n_embd`
+    values: [32, 64]  # Merged with previous `n_embd`
   lr: 
     values: [1e-5, 1e-4, 1e-3, 2e-3, 1e-2]  # Merged with new `lr` values
-  batch_size:
-    values: [128, 16, 32, 64]  # Merged with new batch sizes
+  batch_size_per_chain:
+    values: [16, 32]  # Merged with new batch sizes
+  num_chains:
+    values: [16, 32]
   sequence_length:
-    values: [512,1024]  # Merged with new sequence lengths
+    values: [512]  # Merged with new sequence lengths
   iterations:
     values: [10000]
   seed:
     values: [1]
   device:
-    values: ["cuda:4"]
+    values: ["cuda:2"]
   opt:
     values: ["adamw", "sgd"]  # Merged with new optimizer values
   warmup_percent:
@@ -40,7 +42,6 @@ parameters:
     values: [0.9, 0.95, 0.999]
   grad_clip:
     values: [0.0, 0.5, 1.0, 2.0, 5.0]
-
 
 command:
   - python

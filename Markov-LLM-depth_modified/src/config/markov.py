@@ -6,7 +6,9 @@ import distributed
 def parse_args(base_parser, args, namespace):
     parser = base_parser
     # General training params
-    parser.add_argument('--batch_size', default=16, type=int) #50
+    # parser.add_argument('--batch_size', default=16, type=int) #50
+    parser.add_argument('--batch_size_per_chain', default=16, type=int) #50 
+    parser.add_argument('--num_chains', default=2, type=int) #1
     parser.add_argument('--acc_steps', default=1, type=int)
     parser.add_argument('--seed', default=0, type=int)
     parser.add_argument('--device', default='cuda:0', type=str)

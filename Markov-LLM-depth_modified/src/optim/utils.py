@@ -7,13 +7,24 @@ from contextlib import nullcontext, contextmanager, ExitStack
 from typing import Tuple, Dict
 
 
-def get_random_P(order, batch_size, generator, dist, device, dtype):
-    if dist is None:
-        alpha = 0.5 * torch.ones((batch_size, 2**order, 2))
-        dist = Dirichlet(alpha)
-    P = dist.sample().to(device)
+def get_random_P(order, batch_size_per_chain, num_chains, generator, dist, device, dtype):
+    # if dist is None:
+    #     alpha = 0.5 * torch.ones((batch_size, 2**order, 2))
+    #     dist = Dirichlet(alpha)
+    # P = dist.sample().to(device)
 
-    return P
+    if dist is None:
+        pk = torch.rand((num_chains, 2**order, 1), generator=generator, dtype=dtype, device=device)
+        P = torch.cat([1 - pk, pk], dim=2)
+    else:
+        P = dist.sample().to(device)
+
+    P = P.unsqueeze(1).expand(-1, batch_size_per_chain, *P.shape[1:]).reshape(-1, *P.shape[1:])
+
+    shuffled_P = P[torch.randperm(P.size(0))]
+    # shuffled_P = P  
+    
+    return shuffled_P
 
 
 def empirical_est(x, y, order, beta=1):
@@ -35,7 +46,7 @@ def empirical_est(x, y, order, beta=1):
 
 
 def optimal_est(P, order, sequence_length, generator, dist, extra_args):
-    x, y = get_batch(P, order, sequence_length, 4096, generator, dist, extra_args)
+    x, y = get_batch(P, order, sequence_length, 128, 64, generator, dist, extra_args)
     powers = torch.Tensor([2**i for i in reversed(range(order))]).to(P.device)
     opt_logits = torch.zeros(x.size(0), x.size(1), P.size(1), device=P.device)
     if order > 1:
@@ -54,7 +65,8 @@ def optimal_est(P, order, sequence_length, generator, dist, extra_args):
 
 
 # Optimized Markov data generation (thank you @cekbote!)
-def get_batch(P, order, seq_length, batch_size, generator, dist, extra_args, return_P=False):
+def get_batch(P, order, seq_length,  batch_size_per_chain, num_chains, generator, dist, extra_args, return_P=False):
+    batch_size = batch_size_per_chain * num_chains
     data = torch.zeros(batch_size, seq_length + 1, device=extra_args.device)
     powers = torch.Tensor([2**i for i in reversed(range(order))]).to(
         extra_args.device
@@ -68,7 +80,7 @@ def get_batch(P, order, seq_length, batch_size, generator, dist, extra_args, ret
         )
         # Generate following bits
         P = get_random_P(
-            order, batch_size, generator, dist, extra_args.device, extra_args.dtype
+            order, batch_size_per_chain, num_chains, generator, dist, extra_args.device, extra_args.dtype
         )
         batch_indices = torch.arange(batch_size)
         for i in range(order, seq_length + 1):
@@ -202,7 +214,8 @@ def eval(
     P,
     order,
     sequence_length,
-    batch_size,
+    batch_size_per_chain, 
+    num_chains,
     generator,
     extra_args,
     max_num_batches=24,
@@ -215,7 +228,7 @@ def eval(
 
     for _ in range(max_num_batches):
         x, y = get_batch(
-            P, order, sequence_length, batch_size, generator, None, extra_args
+            P, order, sequence_length, batch_size_per_chain, num_chains, generator, None, extra_args
         )
         with ctx:
             outputs = model(x, targets=y, get_logits=True)
@@ -236,7 +249,8 @@ def eval_att(
     P,
     order,
     sequence_length,
-    batch_size,
+    batch_size_per_chain, 
+    num_chains,
     generator,
     extra_args,
     device="cpu",
@@ -244,7 +258,7 @@ def eval_att(
 ):
     assert model.training == False
 
-    x, y = get_batch(P, order, sequence_length, batch_size, generator, None, extra_args)
+    x, y = get_batch(P, order, sequence_length, batch_size_per_chain, num_chains, generator, None, extra_args)
     with ctx:
         outputs = model(x, targets=y, get_logits=True, get_att=True)
     att_mean = outputs["att_mean"]
@@ -260,7 +274,7 @@ def eval_probs(
     assert model.training == False
     assert P is not None
 
-    x, y = get_batch(P, order, sequence_length, 1, generator, None, extra_args)
+    x, y = get_batch(P, order, sequence_length, 1, 1, generator, None, extra_args)
 
     # Get empirical add-beta estimator
     est_vec = empirical_est(x, y, order)

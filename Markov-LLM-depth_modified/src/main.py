@@ -53,7 +53,7 @@ def get_args():
 
 def get_exp_name(args):
     """ Returns the name of the experiment, used for saving models and wandb. """
-    exp_name = (f"{args.model}_lr{args.lr}_bs{args.batch_size}x{args.acc_steps}_{args.world_size}nodes_"
+    exp_name = (f"{args.model}_lr{args.lr}_bsperchain{args.batch_size_per_chain}x{args.acc_steps}_numchains{args.num_chains}_{args.world_size}nodes_"
             f"chain{args.chain}_order{args.order}_nlayer{args.n_layer}_"
             f"nembd{args.n_embd}_seqlen{args.sequence_length}_iter{args.iterations}_"
             f"seed{args.seed}_opt{args.opt}")
@@ -175,7 +175,7 @@ def main(args):
     
     save_args_to_json(args, os.path.join(ckpt_path, "args.json"))
     
-    stats = train(model, opt, P, order, scheduler, args.iterations, args.acc_steps, args.batch_size, args.sequence_length, generator,
+    stats = train(model, opt, P, order, scheduler, args.iterations, args.acc_steps, args.batch_size_per_chain, args.num_chains, args.sequence_length, generator,
                   eval_freq=args.eval_freq, 
                   distributed_backend=distributed_backend,
                   ckpt_path=f"{ckpt_path}/ckpt.pt", extra_args=args)
