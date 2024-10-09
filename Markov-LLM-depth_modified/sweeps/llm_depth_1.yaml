@@ -1,6 +1,6 @@
 name: "markov_llm_depth_heads"
 method: grid
-project: "markov-LLM-depth-heads-attention-ICL_P_Random-optimised-modified-8th_Oct"
+project: "markov-LLM-depth-heads-attention-ICL_P_Random-optimised-modified-9th_Oct"
 parameters:
   chain:
     values: ["icl"]
@@ -11,7 +11,7 @@ parameters:
   n_head:
     values: [1]
   n_embd:
-    values: [32, 64]  # Merged with previous `n_embd`
+    values: [16, 32]  # Merged with previous `n_embd`
   lr: 
     values: [1e-5, 1e-4, 1e-3, 2e-3, 1e-2]  # Merged with new `lr` values
   batch_size_per_chain:

@@ -54,9 +54,12 @@ def get_args():
 def get_exp_name(args):
     """ Returns the name of the experiment, used for saving models and wandb. """
     exp_name = (f"{args.model}_lr{args.lr}_bsperchain{args.batch_size_per_chain}x{args.acc_steps}_numchains{args.num_chains}_{args.world_size}nodes_"
-            f"chain{args.chain}_order{args.order}_nlayer{args.n_layer}_"
-            f"nembd{args.n_embd}_seqlen{args.sequence_length}_iter{args.iterations}_"
-            f"seed{args.seed}_opt{args.opt}")
+                f"chain{args.chain}_order{args.order}_nlayer{args.n_layer}_nhead{args.n_head}_"
+                f"nembd{args.n_embd}_seqlen{args.sequence_length}_iter{args.iterations}_"
+                f"seed{args.seed}_opt{args.opt}_warmup{args.warmup_percent}_"
+                f"wd{args.weight_decay}_dropout{args.dropout}_sched{args.scheduler}_"
+                f"beta1{args.beta1}_beta2{args.beta2}_gradclip{args.grad_clip}")
+
     if args.wandb_run_prefix != 'none':
         exp_name = args.wandb_run_prefix + '_' + exp_name
     if 'sparse' in args.model:
