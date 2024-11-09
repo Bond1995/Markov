@@ -6,7 +6,8 @@ import distributed
 def parse_args(base_parser, args, namespace):
     parser = base_parser
     # General training params
-    parser.add_argument('--batch_size', default=16, type=int) #50
+    parser.add_argument('--n_minibatch', default=16, type=int)
+    parser.add_argument('--minibatch_size', default=16, type=int)
     parser.add_argument('--acc_steps', default=1, type=int)
     parser.add_argument('--seed', default=0, type=int)
     parser.add_argument('--device', default='cuda:0', type=str)
@@ -17,10 +18,10 @@ def parse_args(base_parser, args, namespace):
     parser.add_argument('--beta1', default=0.9, type=float)
     parser.add_argument('--beta2', default=0.95, type=float)
     parser.add_argument('--scheduler', default='cos', choices=['linear', 'cos', 'none'])
-    parser.add_argument('--opt', default='adamw', choices=['adamw', 'sgd'])
+    parser.add_argument('--opt', default='sgd', choices=['adamw', 'sgd'])
     parser.add_argument('--eval_freq', default=1, type=int) # in iterations
     parser.add_argument('--results_base_folder', default="./exps", type=str) 
-    parser.add_argument('--grad_clip', default=0.0, type=float) # default value is 1.0 in NanoGPT
+    parser.add_argument('--grad_clip', default=1.0, type=float) # default value is 1.0 in NanoGPT
     # Dataset params
     parser.add_argument('--dataset', default='markov', choices=['wikitext', "shakespeare-char", 'arxiv', "arxiv2000", "arxiv+wiki", 'openwebtext2', 'markov'])
     parser.add_argument('--vocab_size', default=2, type=int)
@@ -32,9 +33,9 @@ def parse_args(base_parser, args, namespace):
     parser.add_argument('--n_head', default=1, type=int)
     parser.add_argument('--n_layer', default=1, type=int) # depths in att + ff blocks
     parser.add_argument('--n_embd', default=8, type=int) # embedding size / hidden size ... 
-    parser.add_argument('--sequence_length', default=1024, type=int)
-    parser.add_argument('--dtype', default=torch.float16, type=torch.dtype) #changed!
-    parser.add_argument('--bias', default=False, type=bool)
+    parser.add_argument('--sequence_length', default=512, type=int)
+    parser.add_argument('--dtype', default=torch.float32, type=torch.dtype) #changed!
+    parser.add_argument('--bias', default=True, type=bool)
     parser.add_argument('--no_compile', action='store_true') # if true then model is not compiled 
     # logging params (WandB)
     parser.add_argument('--wandb', action='store_true') # whether to use wandb or not

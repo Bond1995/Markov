@@ -22,10 +22,10 @@ from torch.nn import functional as F
 class LayerNorm(nn.Module):
     """ LayerNorm but with an optional bias. PyTorch doesn't support simply bias=False """
 
-    def __init__(self, ndim, bias):
+    def __init__(self, ndim, bias, device=None, dtype=None):
         super().__init__()
-        self.weight = nn.Parameter(torch.ones(ndim))
-        self.bias = nn.Parameter(torch.zeros(ndim)) if bias else None
+        self.weight = nn.Parameter(torch.ones(ndim, device=device, dtype=dtype))
+        self.bias = nn.Parameter(torch.zeros(ndim, device=device, dtype=dtype)) if bias else None
 
     def forward(self, input):
         return F.layer_norm(input, self.weight.shape, self.weight, self.bias, 1e-5)
@@ -35,11 +35,12 @@ class CausalSelfAttention(nn.Module):
 
     def __init__(self, id, config):
         super().__init__()
+        factory_kwargs = {"device": config.device, "dtype": config.dtype}
         assert config.n_embd % config.n_head == 0
         # key, query, value projections for all heads
-        self.c_attn = nn.Linear(config.n_embd, 3 * config.n_embd, bias=config.bias)
+        self.c_attn = nn.Linear(config.n_embd, 3 * config.n_embd, bias=config.bias, **factory_kwargs)
         # output projection
-        self.c_proj = nn.Linear(config.n_embd, config.n_embd, bias=config.bias)
+        self.c_proj = nn.Linear(config.n_embd, config.n_embd, bias=config.bias, **factory_kwargs)
         # regularization
         self.attn_dropout = nn.Dropout(config.dropout)
         self.resid_dropout = nn.Dropout(config.dropout)
@@ -53,7 +54,7 @@ class CausalSelfAttention(nn.Module):
         if not self.flash:
             print("WARNING: using slow attention. Flash Attention requires PyTorch >= 2.0")
             # causal mask to ensure that attention is only applied to the left in the input sequence
-            self.register_buffer("bias", torch.tril(torch.ones(config.sequence_length, config.sequence_length))
+            self.register_buffer("bias", torch.tril(torch.ones(config.sequence_length, config.sequence_length, **factory_kwargs))
                                         .view(1, 1, config.sequence_length, config.sequence_length))
         self.memory = config.memory
         self.device = config.device
@@ -106,12 +107,12 @@ class CausalSelfAttention(nn.Module):
             att_mean = att
             att_std = att.std(dim=0)
 
-            np.save('att_mean_'+str(self.id)+'.pt', att_mean.numpy(force=True))
+            '''np.save('att_mean_'+str(self.id)+'.pt', att_mean.numpy(force=True))
             if self.wandb:
                 wandb.save('att_mean_'+str(self.id)+'.pt.npy')
             np.save('att_std_'+str(self.id)+'.pt', att_std.numpy(force=True))
             if self.wandb:
-                wandb.save('att_std_'+str(self.id)+'.pt.npy')
+                wandb.save('att_std_'+str(self.id)+'.pt.npy')'''
         else:
             att_mean = None
             att_std = None
@@ -131,8 +132,9 @@ class MLP(nn.Module):
 
     def __init__(self, id, config):
         super().__init__()
-        self.c_fc    = nn.Linear(config.n_embd, 4 * config.n_embd, bias=config.bias)
-        self.c_proj  = nn.Linear(4 * config.n_embd, config.n_embd, bias=config.bias)
+        factory_kwargs = {"device": config.device, "dtype": config.dtype}
+        self.c_fc    = nn.Linear(config.n_embd, 4 * config.n_embd, bias=config.bias, **factory_kwargs)
+        self.c_proj  = nn.Linear(4 * config.n_embd, config.n_embd, bias=config.bias, **factory_kwargs)
         self.dropout = nn.Dropout(config.dropout)
         self.activation = nn.GELU()
         self.id = id
@@ -160,9 +162,10 @@ class Block(nn.Module):
 
     def __init__(self, id, config):
         super().__init__()
-        self.ln_1 = LayerNorm(config.n_embd, bias=config.bias)
+        factory_kwargs = {"device": config.device, "dtype": config.dtype}
+        self.ln_1 = LayerNorm(config.n_embd, bias=config.bias, **factory_kwargs)
         self.attn = CausalSelfAttention(id, config)
-        self.ln_2 = LayerNorm(config.n_embd, bias=config.bias)
+        self.ln_2 = LayerNorm(config.n_embd, bias=config.bias, **factory_kwargs)
         self.mlp = MLP(id, config)
 
     def forward(self, x, get_att=False):
@@ -178,6 +181,7 @@ class GPTBase(nn.Module):
         super().__init__()
         assert config.vocab_size is not None
         assert config.sequence_length is not None
+        factory_kwargs = {"device": config.device, "dtype": config.dtype}
         self.config = config
         self.tokenizer = tiktoken.get_encoding("gpt2")
         self.wandb = config.wandb
@@ -185,14 +189,14 @@ class GPTBase(nn.Module):
         self.iter = 1
         
         self.transformer = nn.ModuleDict(dict(
-            wte = nn.Embedding(config.vocab_size, config.n_embd),
-            wpe = nn.Embedding(config.sequence_length, config.n_embd),
+            wte = nn.Embedding(config.vocab_size, config.n_embd, **factory_kwargs),
+            wpe = nn.Embedding(config.sequence_length, config.n_embd, **factory_kwargs),
             drop = nn.Dropout(config.dropout),
             h = nn.ModuleList([Block(id, config) for id in range(config.n_layer)]),
-            ln_f = LayerNorm(config.n_embd, bias=config.bias),
+            ln_f = LayerNorm(config.n_embd, bias=config.bias, **factory_kwargs),
         ))
 
-        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=True)
+        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=True, **factory_kwargs)
         # with weight tying when using torch.compile() some warnings get generated:
         # "UserWarning: functional_call was passed multiple values for tied weights.
         # This behavior is deprecated and will be an error in future versions"
