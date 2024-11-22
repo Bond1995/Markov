@@ -154,7 +154,7 @@ class GPTBase(nn.Module):
                 wandb.save('wpe-'+str(self.iter)+'.pt.npy')
 
         x = tok_emb + pos_emb
-        x = self.mlp(x)
+        x = x + self.mlp(x)
 
         if targets is not None:
             # if we are given some desired targets also calculate the loss

@@ -3,7 +3,7 @@ set -e  # exit on error
 
 USER=bondasch
 LAB=linx
-WANDB_PROJECT="markov-simple-mlp-without-tying"
+WANDB_PROJECT="markov-simple-mlp-with-tying"
 WANDB_RUN_GROUP="test01"
 WANDB_API_KEY=`python -c "import wandb; print(wandb.api.api_key)"`
 CODE_BUNDLE=`epfml bundle pack .`
@@ -17,7 +17,7 @@ do
         do
             # Generate a unique ID for wandb. This makes sure that automatic restarts continue with the same job.
             RUN_ID=`python -c "import wandb; print(wandb.util.generate_id())"`;
-            RUN_FILE="python main.py --wandb --wandb_project $WANDB_PROJECT --p $p --q $q --iterations 1000 --no_tying"
+            RUN_FILE="python main.py --wandb --wandb_project $WANDB_PROJECT --p $p --q $q --iterations 1000"
 
             runai submit \
                 --name ${WANDB_RUN_GROUP}-${RUN_ID} \
