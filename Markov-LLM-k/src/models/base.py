@@ -179,9 +179,8 @@ class GPTBase(nn.Module):
         # "UserWarning: functional_call was passed multiple values for tied weights.
         # This behavior is deprecated and will be an error in future versions"
         # not 100% sure what this is, so far seems to be harmless. TODO investigate
-        if self.config.vocab_size != 2:
-            if not self.config.no_tying:
-                self.transformer.wte.weight = self.lm_head.weight # https://paperswithcode.com/method/weight-tying
+        if not self.config.no_tying:
+            self.transformer.wte.weight = self.lm_head.weight # https://paperswithcode.com/method/weight-tying
 
         # init all weights
         self.apply(self._init_weights)
@@ -312,9 +311,8 @@ class GPTBase(nn.Module):
         # will only return the first occurence, key'd by 'transformer.wte.weight', below.
         # so let's manually remove 'lm_head.weight' from decay set. This will include
         # this tensor into optimization via transformer.wte.weight only, and not decayed.
-        if self.config.vocab_size != 2:
-            if not self.config.no_tying:
-                decay.remove('lm_head.weight')
+        if not self.config.no_tying:
+            decay.remove('lm_head.weight')
 
         # validate that we considered every parameter
         param_dict = {pn: p for pn, p in self.named_parameters()}

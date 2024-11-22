@@ -49,11 +49,9 @@ class CausalSelfAttention(nn.Module):
         self.iterations = config.iterations
         # flash attention make GPU go brrrrr but support is only in PyTorch >= 2.0
         self.flash = hasattr(torch.nn.functional, 'scaled_dot_product_attention')
-        if not self.flash:
-            print("WARNING: using slow attention. Flash Attention requires PyTorch >= 2.0")
-            # causal mask to ensure that attention is only applied to the left in the input sequence
-            self.register_buffer("bias", torch.tril(torch.ones(config.sequence_length, config.sequence_length))
-                                        .view(1, 1, config.sequence_length, config.sequence_length))
+        # causal mask to ensure that attention is only applied to the left in the input sequence
+        self.register_buffer("bias", torch.tril(torch.ones(config.sequence_length, config.sequence_length))
+                                    .view(1, 1, config.sequence_length, config.sequence_length))
 
         self.memory = config.memory
         self.device = config.device
@@ -114,6 +112,18 @@ class CausalSelfAttention(nn.Module):
             att = self.attn_dropout(att)
             y = att @ v # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
         y = y.transpose(1, 2).contiguous().view(B, T, C) # re-assemble all head outputs side by side
+
+        if (self.iter == 1) or (self.iter % 100 == 0):
+            att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
+            att = att.masked_fill(self.bias[:,:,:T,:T] == 0, float('-inf'))
+            att = F.softmax(att, dim=-1)
+
+            if self.wandb:
+                wandb.log({"att-mat-"+str(self.iter): wandb.Image(att[0, 0, :30, :30].numpy(force=True))})
+
+            np.save('att-mat-'+str(self.iter)+'.pt', att[0, 0].numpy(force=True))
+            if self.wandb:
+                wandb.save('att-mat-'+str(self.iter)+'.pt.npy')
 
         # output projection
         y = self.resid_dropout(self.c_proj(y))
@@ -190,22 +200,20 @@ class Block(nn.Module):
         self.iter = 1
 
     def forward(self, x):
-        if (self.iter == 1) or (self.iter % 100 == 0):
-            y = self.attn(x)
-            z = x + y
+        y = self.attn(x)
+        z = x + y
+
+        if (self.iter == 1) or (self.iter % 10 == 0):
             err = (y.norm(dim=2) / z.norm(dim=2)).mean()
-            print("Approximation error:")
-            print(err)
 
             if self.wandb:
                 wandb.log({"val/approx-err": err.item()})
 
-        x = x + self.attn(x)
-        x = x + self.mlp(x)
+        z = z + self.mlp(z)
 
         self.iter += 1
 
-        return x
+        return z
     
 
 class GPTBase(nn.Module):
@@ -248,9 +256,9 @@ class GPTBase(nn.Module):
         if self.config.init == "good":
             for pn, p in self.named_parameters():
                 if pn.endswith('wte.weight'):
-                    torch.nn.init.constant_(p, 0.5)
+                    torch.nn.init.constant_(p, -1.0)
                 elif pn.endswith('wpe.weight'):
-                    torch.nn.init.constant_(p, -0.25)
+                    torch.nn.init.constant_(p, 0.5)
                 elif pn.endswith('mlp.c_fc.weight'):
                     torch.nn.init.constant_(p, 2)
                 elif pn.endswith('mlp.c_proj.weight'):

@@ -31,7 +31,7 @@ def parse_args(base_parser, args, namespace):
     parser.add_argument('--dropout', default=0, type=float) #0.2
     parser.add_argument('--n_head', default=1, type=int)
     parser.add_argument('--n_layer', default=1, type=int) # depths in att + ff blocks
-    parser.add_argument('--n_embd', default=8, type=int) # embedding size / hidden size ... 
+    parser.add_argument('--n_embd', default=4, type=int) # embedding size / hidden size ... 
     parser.add_argument('--sequence_length', default=1024, type=int)
     parser.add_argument('--dtype', default=torch.float16, type=torch.dtype) #changed!
     parser.add_argument('--bias', default=False, type=bool)

@@ -244,9 +244,9 @@ class GPTBase(nn.Module):
         if self.config.init == "good":
             for pn, p in self.named_parameters():
                 if pn.endswith('wte.weight'):
-                    torch.nn.init.constant_(p, 0.5)
+                    torch.nn.init.constant_(p, -1.0)
                 elif pn.endswith('wpe.weight'):
-                    torch.nn.init.constant_(p, -0.25)
+                    torch.nn.init.constant_(p, 0.5)
                 elif pn.endswith('mlp.c_fc.weight'):
                     torch.nn.init.constant_(p, 2)
                 elif pn.endswith('mlp.c_proj.weight'):

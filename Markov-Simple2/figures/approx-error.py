@@ -17,7 +17,7 @@ def moving_average(a, n=3):
 
 df1 = []
 losses1 = []
-for run in api.runs("linx/test"):
+for run in api.runs("mamba-markov/markov-simple-att"):
     try:
         df1.append(run.history(samples=20000000))
     except:
@@ -26,7 +26,7 @@ for run in api.runs("linx/test"):
 for h in df1:
     loss = h["val/approx-err"].values[:]
     loss = loss[~np.isnan(loss)]
-    loss = moving_average(loss, n=10)
+    #loss = moving_average(loss, n=10)
     losses1.append(loss)
     
 loss1 = np.stack(losses1)
@@ -42,7 +42,7 @@ ax.fill_between(range(len(loss_mean1)), loss_mean1-loss_std1, loss_mean1+loss_st
 ax.set(xlabel="Iteration", ylabel="Approximation error")
 ax.xaxis.label.set_fontsize(16)
 ax.yaxis.label.set_fontsize(16)
-plt.xlim((0,500))
+plt.xlim((0,200))
 #plt.ylim((0,2))
 plt.xticks(fontsize=16)
 plt.yticks(fontsize=16)

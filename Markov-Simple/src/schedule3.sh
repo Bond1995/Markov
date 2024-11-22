@@ -3,15 +3,15 @@ set -e  # exit on error
 
 USER=bondasch
 LAB=linx
-WANDB_PROJECT="markov-simple-states-new"
+WANDB_PROJECT="markov-simple-states-10"
 WANDB_RUN_GROUP="test01"
 WANDB_API_KEY=`python -c "import wandb; print(wandb.api.api_key)"`
 CODE_BUNDLE=`epfml bundle pack .`
 
 i=1;
-for p in 0.1 0.3 0.6 0.9;
+for p in 0.95 0.96 0.97 0.98;
 do
-    for vocab_size in 5;
+    for vocab_size in 10;
     do
         for n_embd in 8;
         do
@@ -30,7 +30,6 @@ do
                     --pvc linx-scratch:/scratch \
                     --gpu 1 \
                     --image ic-registry.epfl.ch/linx/bondasch-pytorch-base:latest \
-                    --large-shm \
                     --environment DATA_DIR=/home/$USER/data \
                     --environment EPFML_LDAP=$USER \
                     --command -- \
@@ -38,7 +37,7 @@ do
                         su $USER -c \
                         \"epfml bundle exec $CODE_BUNDLE -- $RUN_FILE\";
 
-                    if [ `expr $i % 6` -eq 0 ]
+                    if [ `expr $i % 13` -eq 0 ]
                     then
                         sleep 2000;
                     fi
@@ -47,4 +46,3 @@ do
         done
     done
 done
-        

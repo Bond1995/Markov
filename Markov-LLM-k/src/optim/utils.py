@@ -4,8 +4,31 @@ import torch.nn.functional as F
 from contextlib import nullcontext, contextmanager, ExitStack
 
 
-def optimal_est(P, order, generator, extra_args, device):
-    x, y = get_batch(P, order, 1024, 100, generator, extra_args, device)
+def get_random_P(order, batch_size, generator, device, dtype):
+    pk = torch.rand((batch_size, 2**order, 1), generator=generator, dtype=dtype, device=device)
+    P = torch.cat([1 - pk, pk], dim=2)
+
+    return P
+
+def empirical_est(x, y, order, beta=1):
+    assert x.size(0) == 1
+    device = x.device
+    x = x.float().squeeze()
+    y = y.float().squeeze()
+    powers = torch.Tensor([2**i for i in reversed(range(order))]).to(device)
+    idx = F.conv1d(x.view(1,-1), powers.view(1,1,-1)).squeeze()
+    est_vec = []
+    for i in range(2**order):
+        mask = (idx == i)
+        s = y[order-1:][mask]
+        s = torch.cat((torch.Tensor([0]).to(device), s[:-1]))
+        s = (s.cumsum(0) + beta) / (torch.arange(len(s), device=device) + 2*beta)
+        est_vec.append(s)
+
+    return est_vec
+
+def optimal_est(P, order, sequence_length, generator, extra_args):
+    x, y = get_batch(P, order, sequence_length, 4096, generator, extra_args)
     powers = torch.Tensor([2**i for i in reversed(range(order))]).to(P.device)
     opt_logits = torch.zeros(x.size(0), x.size(1), P.size(1), device=P.device)
     if order > 1:
@@ -18,36 +41,50 @@ def optimal_est(P, order, generator, extra_args, device):
 
     return opt_loss
 
-
-def get_batch(P, order, seq_length, batch_size, generator, extra_args, device='cpu'):
-    data = torch.zeros(batch_size, seq_length+1, device=device)
-    if extra_args.initial == 'steady':
-        if P.size(0) == 2:
-            alpha = P[1,0] / (P[0,1] + P[1,0])
+# Optimized Markov data generation (thank you @cekbote!)
+def get_batch(P, order, seq_length, batch_size, generator, extra_args):
+    data = torch.zeros(batch_size, seq_length+1, device=extra_args.device)
+    powers = torch.Tensor([2**i for i in reversed(range(order))]).to(extra_args.device)
+    if P == None:
+        # Generate first k bits
+        alpha = 0.5
+        data[:, :order] = torch.bernoulli(alpha * torch.ones((batch_size, order)), generator=generator)
+        # Generate following bits
+        P = get_random_P(order, batch_size, generator, extra_args.device, extra_args.dtype)
+        batch_indices = torch.arange(batch_size)
+        
+        for i in range(order, seq_length+1):
+            # Extract the previous 'order' symbols for the entire batch
+            prev_symbols = data[:, i-order:i]
+            # Compute indices using the dot product with powers of 2
+            idx = (prev_symbols @ powers).int()
+            # Fetch next symbols from the transition matrix P for each batch in parallel
+            next_symbols = torch.multinomial(P[batch_indices, idx], 1, generator=generator).squeeze(1)
+            # Update the data with the newly sampled symbols
+            data[:, i] = next_symbols
+    else:
+        # Use same fixed P for all sequences
+        # Generate first k bits
+        if extra_args.initial == 'steady':
+            if P.size(0) == 2:
+                alpha = P[1,0] / (P[0,1] + P[1,0])
+            else:
+                alpha = 0.5
+        elif extra_args.initial == 'uniform':
+            alpha = 0.5
         else:
             alpha = 0.5
-    elif extra_args.initial == 'uniform':
-        alpha = 0.5
-    else:
-        alpha = 0.5
-    # Generate first k bits
-    for k in range(order):
-        data[:,k] = torch.bernoulli(alpha*torch.ones((batch_size,), device=device), generator=generator)
-    for i in range(order, seq_length):
-        data[:,i] = get_next_symbols(P, order, data[:,i-order:i])
+        data[:, :order] = torch.bernoulli(alpha * torch.ones((batch_size, order)), generator=generator)
+        # Generate following bits
+        for i in range(order, seq_length+1):
+            prev_symbols = data[:, i-order:i]
+            idx = (prev_symbols @ powers).int()
+            next_symbols = torch.multinomial(P[idx], 1, generator=generator).squeeze(1)
+            data[:, i] = next_symbols
     x = data[:,:seq_length].to(int)
     y = data[:,1:].to(int)
     
     return x, y
-
-def get_next_symbols(P, order, data):
-    powers = torch.Tensor([2**i for i in reversed(range(order))]).to(data.device)
-    idx = data @ powers
-    M = P[idx.to(int)]
-    s = torch.multinomial(M,1).flatten()
-
-    return s
-
 
 @torch.no_grad()
 def eval(model, P, order, sequence_length, batch_size, generator, extra_args, device='cpu', max_num_batches=24, ctx=nullcontext()):

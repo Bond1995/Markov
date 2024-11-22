@@ -17,8 +17,11 @@ class MarkovFixed(nn.Module):
         self.wandb = config.wandb
         self.iter = 0
         
-        self.e = nn.Parameter(config.e * torch.ones(1))
-        self.w = nn.Parameter(config.w * torch.ones(1))
+        self.generator = torch.Generator()
+        self.generator.seed()
+
+        self.e = nn.Parameter(0.01*torch.randn(1, generator=self.generator) * torch.ones(1))
+        self.w = nn.Parameter(0.01*torch.randn(1, generator=self.generator) * torch.ones(1))
         self.b = nn.Parameter(config.b * torch.ones(1))
 
         # report number of parameters

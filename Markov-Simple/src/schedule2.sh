@@ -3,23 +3,23 @@ set -e  # exit on error
 
 USER=bondasch
 LAB=linx
-WANDB_PROJECT="markov-simple-init-good-new"
+WANDB_PROJECT="markov-simple-init-good-pq"
 WANDB_RUN_GROUP="test01"
 WANDB_API_KEY=`python -c "import wandb; print(wandb.api.api_key)"`
 CODE_BUNDLE=`epfml bundle pack .`
 
 i=1;
-for p in 0.5;
+for p in 0.7;
 do
-    for q in 0.8;
+    for q in 0.9;
     do
-        for init in base;
+        for init in base good;
         do
             for j in 1 2 3;
             do
                 # Generate a unique ID for wandb. This makes sure that automatic restarts continue with the same job.
                 RUN_ID=`python -c "import wandb; print(wandb.util.generate_id())"`;
-                RUN_FILE="python main.py --wandb --wandb_project $WANDB_PROJECT --p $p --q $q --init $init --lr 1e-3 --iterations 5000"
+                RUN_FILE="python main.py --wandb --wandb_project $WANDB_PROJECT --p $p --q $q --init $init --lr 1e-3 --iterations 8000"
 
                 runai-rcp submit \
                     --name ${WANDB_RUN_GROUP}-${RUN_ID} \
